@@ -1,6 +1,6 @@
 # Use the official Node.js image.
 # https://hub.docker.com/_/node
-FROM node:14 AS build
+FROM node:20 AS build
 
 # Create and change to the app directory.
 WORKDIR /usr/src/app
@@ -24,7 +24,7 @@ FROM nginx:alpine
 COPY --from=build /usr/src/app/dist /usr/share/nginx/html
 
 # Inform Docker that the container listens on the specified network ports at runtime.
-EXPOSE 8080
+EXPOSE 80
 
 # Run nginx
 CMD ["nginx", "-g", "daemon off;"]
