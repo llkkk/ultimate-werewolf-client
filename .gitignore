@@ -59,7 +59,6 @@ Desktop.ini
 
 # gatsby files
 .cache/
-public
 
 # misc
 .sass-cache
