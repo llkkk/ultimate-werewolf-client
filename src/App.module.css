@@ -1,0 +1,115 @@
+/* App.module.css */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    color: #333;
+  }
+  
+  .message {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+  }
+  
+  .playerGrid, .roleGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+  }
+  
+  .playerItem, .roleItem {
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .playerItem img, .roleItem img {
+    width: 100px;
+    height: 150px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+  
+  .playerItem img:hover, .deckGrid img:hover, .roleItem img:hover {
+    transform: scale(1.1);
+  }
+  
+  .playerItem button, .roleItem button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #ff4d4d;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .playerItem button:hover, .roleItem button:hover {
+    background-color: #ff1a1a;
+  }
+  
+  .deckGrid {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .deckGrid img {
+    width: 100px;
+    height: 150px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  h2, h3 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .currentRole img {
+    display: block;
+    margin: 0 auto;
+    width: 100px;
+    height: 150px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .currentPhase, .logs, .voteResults, .gameConfig {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  .voteResults p {
+    color: #ff4d4d;
+    font-weight: bold;
+  }
+  
+  .logs ul, .voteResults ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .logs ul li, .voteResults ul li {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    margin-bottom: 5px;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  

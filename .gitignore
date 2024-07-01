@@ -1,0 +1,78 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# macOS
+*.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# npm
+*.log
+
+# IDEs and editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# optional npm cache directory
+.npm
+
+# parcel-bundler cache (https://parceljs.org/)
+.parcel-cache
+
+# local env files
+.localenv
+
+# next.js build output
+.next
+
+# nuxt.js build output
+.nuxt
+
+# gatsby files
+.cache/
+public
+
+# misc
+.sass-cache
+connect.lock
+coverage
+bower_components
+node_modules
+jspm_packages
+
+# dotenv environment variables file
+.env
+.env.test
+.env.production
+
+# react-native
+.expo
