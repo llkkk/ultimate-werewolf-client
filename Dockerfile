@@ -24,7 +24,7 @@ FROM nginx:alpine
 COPY --from=build /usr/src/app/dist /usr/share/nginx/html
 
 # Inform Docker that the container listens on the specified network ports at runtime.
-EXPOSE 80
+EXPOSE 8080
 
 # Run nginx
 CMD ["nginx", "-g", "daemon off;"]
