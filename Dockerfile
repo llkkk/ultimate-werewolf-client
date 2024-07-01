@@ -1,30 +1,35 @@
-# Use the official Node.js image.
-# https://hub.docker.com/_/node
-FROM node:20
+# 使用官方的 Node.js 20 镜像
+FROM node:20 AS build
 
-# Create and change to the app directory.
+# 创建并切换到 /usr/src/app 目录
 WORKDIR /usr/src/app
 
-# Copy application dependency manifests to the container image.
-# A wildcard is used to ensure both package.json AND package-lock.json are copied.
-# Copying this separately prevents re-running npm install on every code change.
+# 将 package.json 和 package-lock.json 复制到工作目录
 COPY package*.json ./
 
-# Install production dependencies.
+# 安装依赖
 RUN npm install
 
-# Copy local code to the container image.
+# 将本地代码复制到工作目录
 COPY . .
 
-# Build the app
+# 打印目录结构，检查文件是否正确复制
+RUN ls -al /usr/src/app
+
+# 运行构建命令
 RUN npm run build
 
-# Use a different image to serve the built app
+# 使用一个不同的基础镜像来提供静态文件
 FROM nginx:alpine
-COPY --from=0 /usr/src/app/build /usr/share/nginx/html
 
-# Inform Docker that the container listens on the specified network ports at runtime.
+# 将前一个阶段生成的构建输出复制到 Nginx 的静态文件目录
+COPY --from=build /usr/src/app/build /usr/share/nginx/html
+
+# 打印目录结构，检查文件是否正确复制
+RUN ls -al /usr/share/nginx/html
+
+# 暴露容器的端口
 EXPOSE 80
 
-# Run nginx
+# 启动 Nginx
 CMD ["nginx", "-g", "daemon off;"]
