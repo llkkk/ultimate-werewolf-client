@@ -8,6 +8,7 @@ function Home({ socket }) {
   const [roomID, setRoomID] = useState('');
 
   const createRoom = () => {
+    alert('请输入用户名');
     if (username.trim() === '') {
       alert('请输入用户名');
       return;
