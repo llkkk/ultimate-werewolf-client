@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './App.module.css';  // 确保导入了 CSS Modules 文件
 
+import wolfImg from './assets/werewolf.jpg';
+
 const abilities = {
   viewHand: { name: '查看手牌', max: 1 },
   swapHand: { name: '交换手牌', max: 1 },
@@ -20,7 +22,7 @@ function Room({ socket }) {
   const [username, setUsername] = useState(localStorage.getItem('username') || '');
   const [players, setPlayers] = useState([]);
   const [roles, setRoles] = useState([
-    { name: '狼人', description: '每晚可以确认同伴身份,单狼可查看一张底牌', img: '/werewolf.jpg', count: 1, abilities: [abilities.seeTeammate], faction: '狼人阵营' },
+    { name: '狼人', description: '每晚可以确认同伴身份,单狼可查看一张底牌', img: wolfImg, count: 1, abilities: [abilities.seeTeammate], faction: '狼人阵营' },
     { name: '预言家', description: '每晚可以查验一人的身份', img: '/seer.jpg', count: 1, abilities: [abilities.viewHand, abilities.viewDeck], faction: '好人阵营' },
     { name: '捣蛋鬼', description: '可以交换两名玩家的身份', img: '/troublemaker.jpg', count: 1, abilities: [abilities.swapHand], faction: '好人阵营' },
     { name: '强盗', description: '可以与一名玩家交换身份', img: '/robber.jpg', count: 1, abilities: [abilities.viewAndSwap], faction: '好人阵营' },

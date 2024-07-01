@@ -1,4 +1,5 @@
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: './src/index.js',
@@ -35,9 +36,28 @@ module.exports = {
           },
         },
       },
+      {
+        test: /\.(png|jpe?g|gif|svg)$/, // 添加处理图片文件的规则
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: '[name].[hash].[ext]',
+              outputPath: 'images',
+            },
+          },
+        ],
+      },
     ],
   },
   resolve: {
     extensions: ['.js', '.jsx'],
   },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './public/index.html', // 根据你的项目调整模板文件路径
+      filename: 'index.html',
+    }),
+    // 其他插件，根据你的项目需要添加
+  ],
 };
