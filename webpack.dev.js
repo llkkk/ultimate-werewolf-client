@@ -10,5 +10,8 @@ module.exports = merge(common, {
     },
     compress: true,
     port: 9000,
+    allowedHosts: [
+      'lllkk.fun'
+    ]
   },
 });
