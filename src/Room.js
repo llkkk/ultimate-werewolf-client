@@ -13,6 +13,7 @@ function Room({ socket }) {
   const [roles, setRoles] = useState([]);
   const [gameState, setGameState] = useState(null);
   const [preGameState, setPreRoles] = useState([]);
+  const [textToCopy, setTextToCopy] = useState({roomID});
 
   const abilities = {
     viewHand: { name: '查看手牌', max: 1},
@@ -95,18 +96,33 @@ function Room({ socket }) {
       setPlayers(gameState.players); // 确保玩家状态更新
       console.log('Game state restart', gameState);
     });
-
-    return () => {
-      socket.off('updatePlayers');
-      socket.off('updateRoles');
-      socket.off('updateHost');
-      socket.off('newHost');
-      socket.off('gameStarted');
-      socket.off('updateGameState');
-      socket.off('updateVisibleCards');
-      socket.off('actionDenied');
-    };
   }, [socket, roomID, username, navigate]);
+
+
+  const handleCopy = ({roomID}) => {
+    console.log('Copying text:', roomID); // 确认传递的是字符串
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(roomID).then(() => {
+        alert("复制成功！");
+      }).catch(err => {
+        console.error("Failed to copy text: ", err);
+      });
+    } else {
+      // Fallback method using execCommand
+      const textArea = document.createElement("textarea");
+      textArea.value = roomID;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        alert("复制成功！");
+      } catch (err) {
+        console.error("Failed to copy text: ", err);
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
 
   const handleRoleChange = (index, delta) => {
     if (!isHost) return;
@@ -235,7 +251,9 @@ function Room({ socket }) {
 
   return (
     <div className={styles.container}>
-      <h2>房间号: {roomID}</h2>
+      <h2>房间号:<span onClick={() => handleCopy(textToCopy)} style={{ cursor: 'pointer', userSelect: 'none' }}>
+          {roomID}
+        </span></h2>
       <div className={styles.message}>
         <p>公告：一夜狼人为发言游戏，建议线下玩，或群语音开麦玩。</p>
         {actionDenied && <p style={{ color: 'red' }}>{actionDenied}</p>}

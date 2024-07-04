@@ -12,7 +12,7 @@ function Home({ socket }) {
       alert('请输入用户名');
       return;
     }
-    const newRoomID = uuidv4(); // 生成唯一的房间ID
+    const newRoomID = uuidv4().slice(0, 8); // 生成唯一的房间ID 截取前10个字符
     socket.emit('createRoom', { id: newRoomID, username }, (response) => {
       if (response.status === 'ok') {
         localStorage.setItem('room', newRoomID);
