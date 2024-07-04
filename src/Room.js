@@ -3,44 +3,33 @@ import { useNavigate } from 'react-router-dom';
 import styles from './App.module.css';  // 确保导入了 CSS Modules 文件
 
 
-const abilities = {
-  viewHand: { name: '查看手牌', max: 1 },
-  swapHand: { name: '交换手牌', max: 1 },
-  seerViewDeck: { name: '预言家查看底牌', max: 2 },
-  wolfViewDeck: { name: '狼人查看底牌', max: 1 },
-  viewAndSwap: { name: '查看并交换手牌', max: 1 },
-  swapDeck: { name: '交换底牌', max: 1 },
-  seeTeammate: { name: '确认队友', max: 1 },
-  viewSelfHand: { name: '确认自己手牌', max: 1 },
-  swapSelfHandDeck: { name: '交换手牌和任意一张底牌', max: 1 },
-};
+
 
 function Room({ socket }) {
   const navigate = useNavigate();
   const [roomID, setRoomID] = useState(localStorage.getItem('room') || '');
   const [username, setUsername] = useState(localStorage.getItem('username') || '');
   const [players, setPlayers] = useState([]);
-  const [roles, setRoles] = useState([
-    { name: '狼人', description: '每晚可以确认同伴身份,单狼可查看一张底牌', img: '/wolfware.jpg', count: 1, abilities: [abilities.seeTeammate], faction: '狼人阵营' },
-    { name: '预言家', description: '每晚可以查验一人的身份', img: '/seer.jpg', count: 1, abilities: [abilities.viewHand, abilities.viewDeck], faction: '好人阵营' },
-    { name: '捣蛋鬼', description: '可以交换两名玩家的身份', img: '/troublemaker.jpg', count: 1, abilities: [abilities.swapHand], faction: '好人阵营' },
-    { name: '强盗', description: '可以与一名玩家交换身份', img: '/robber.jpg', count: 1, abilities: [abilities.viewAndSwap], faction: '好人阵营' },
-    { name: '村民', description: '没有特殊能力，白天参与投票', img: '/villager.jpg', count: 1, abilities: [], faction: '好人阵营' },
-    { name: '失眠者', description: '可重新确认自己的卡牌', img: '/insomniac.jpg', count: 1, abilities: [], faction: '好人阵营' },
-    { name: '爪牙', description: '能知道场上的狼人牌，白天被投出去算狼人阵营获胜', img: '/minion.jpg', count: 1, abilities: [], faction: '狼人阵营' },
-    { name: '狼先知', description: '在狼人基础上，可验证一张场上玩家的身份', img: '/mystic.jpg', count: 1, abilities: [], faction: '狼人阵营' },
-    { name: '守夜人', description: '每晚可以确认同伴身份', img: '/mason.jpg', count: 1, abilities: [], faction: '好人阵营' }
-  ]);
+  const [roles, setRoles] = useState([]);
   const [gameState, setGameState] = useState(null);
-  //const [preGameState, setGameState] = useState(null);
+  const [preGameState, setPreRoles] = useState([]);
+
+  const abilities = {
+    viewHand: { name: '查看手牌', max: 1},
+    swapHand: { name: '交换手牌', max: 1},
+    seerViewDeck: { name: '预言家查看底牌', max: 2},
+    wolfViewDeck: { name: '狼人查看底牌', max: 1},
+    viewAndSwap: { name: '查看并交换手牌', max: 1},
+    swapHand: { name: '交换手牌', max: 1},
+    viewSelfHand: { name: '确认自己手牌', max: 1 },
+    swapSelfHandDeck: { name: '交换手牌和任意一张底牌', max: 1 },
+  };
 
   
   const [isHost, setIsHost] = useState(localStorage.getItem('host') === socket.id);
   const [logs, setLogs] = useState({});
-  const [visibleCards, setVisibleCards] = useState([]);
   const [actionDenied, setActionDenied] = useState('');
   const [swapTargets, setSwapTargets] = useState([]);
-  const [seerAction, setSeerAction] = useState(null);
 
   useEffect(() => {
     if (!roomID || !username) {
@@ -100,6 +89,7 @@ function Room({ socket }) {
     });
 
     socket.on('restartGame', (gameState) => {
+      console.log('Game state restart11111', gameState);
       setGameState(null);
       setRoles(gameState.preRoles);
       setPlayers(gameState.players); // 确保玩家状态更新
@@ -149,11 +139,14 @@ function Room({ socket }) {
 
   const startGame = () => {
     if (!isHost) return;
-    socket.emit('startGame', { room: roomID });
+    socket.emit('startGame', { room: roomID }, (response) => {
+      if (response.status === 'error') {
+        alert(response.message);
+      }
+    });
   };
 
   const nightAction = (action, data) => {
-    console.log('执行行动', action)
     socket.emit('nightAction', { room: roomID, action, data });
   };
 
@@ -167,39 +160,43 @@ function Room({ socket }) {
   };
 
   const canPerformAction = (ability) => {
-    console.log('Checking ability:', ability);
     const currentPlayer = gameState.players.find(p => p.id === socket.id);
-    console.log('Current player:', currentPlayer);
-    return currentPlayer && currentPlayer.initialRole && currentPlayer.initialRole.name === gameState.subPhase && currentPlayer.initialRole.abilities.some(a => a.name === ability.name && a.max > 0);
+    return currentPlayer && currentPlayer.initialRole && currentPlayer.initialRole.name === gameState.subPhase && 
+    currentPlayer.initialRole.abilities.some(a => a.name === ability.name && a.max > 0);
   };
 
   const handleCardClick = (player) => {
-    if (seerAction) {
-      nightAction(seerAction, { type: 'player', target: player.id });
-      setSeerAction(null);
+    if (canPerformAction(abilities.viewHand)) {
+      nightAction(abilities.viewHand.name, {target1: {id:player.id}});
     } else if (canPerformAction(abilities.swapHand)) {
       if (swapTargets.length === 0) {
-        setSwapTargets([player.id]);
+        if(player.id !== socket.id) {
+          setSwapTargets([player.id]);
+        }
       } else if (swapTargets.length === 1) {
-        setSwapTargets([...swapTargets, player.id]);
-        nightAction(abilities.swapHand.name, { target1: swapTargets[0], target2: player.id });
-        setSwapTargets([]);
+        if(player.id !== socket.id && player.id !== swapTargets[0]) {
+          setSwapTargets([...swapTargets, player.id]);
+          nightAction(abilities.swapHand.name, { target1: {type:'player', id:swapTargets[0]}, target2: {type:'player', id:player.id} });
+          setSwapTargets([]);
+        }
+    
       }
-    } else if (canPerformAction(abilities.viewHand)) {
-      nightAction(abilities.viewHand.name, { type: 'player', target: player.id });
     } else if (canPerformAction(abilities.viewAndSwap)) {
-      nightAction(abilities.viewAndSwap.name, { target: player.id });
-    } else if (canPerformAction(abilities.viewSelfHand.name)) {
-      nightAction(abilities.viewSelfHand.name, {});
-    } 
+      if(player.id != socket.id) {
+        const currentPlayer = gameState.players.find(p => p.id === socket.id);
+        nightAction(abilities.viewAndSwap.name, { target1: {type:'player', id: player.id}, target2: {type:'player', id: currentPlayer.id} });
+      }
+
+    }
   };
 
   const handleDeckClick = (index) => {
-    if (seerAction) {
-      nightAction(seerAction, { type: 'deck', target: [index] });
-      setSeerAction(null);
-    } else if (canPerformAction(abilities.viewDeck)) {
-      nightAction(abilities.viewDeck.name, { type: 'deck', targets: [index] });
+    if (canPerformAction(abilities.seerViewDeck)) {
+      nightAction(abilities.seerViewDeck.name, { targets: [index] });
+    } else if (canPerformAction(abilities.wolfViewDeck)) {
+      nightAction(abilities.wolfViewDeck.name, { targets: [index] });
+    } else if (canPerformAction(abilities.swapSelfHandDeck)) {
+      nightAction(abilities.swapSelfHandDeck.name, { target1: {type:'player', id: socket.id}, target2: {type:'deck', id: index} });
     }
   };
 
@@ -213,28 +210,15 @@ function Room({ socket }) {
     return currentPlayer && currentPlayer.initialRole ? currentPlayer.initialRole.img : '/cardback.png';
   };
 
-  const getLogMessage = (log) => {
-    const currentPlayer = gameState.players.find(p => p.id === socket.id);
-    return currentPlayer && currentPlayer.initialRole ? `${currentPlayer.initialRole.name}：${log}` : `未知角色：${log}`;
+  const getLogMessage = (log, id) => {
+    const currentPlayer = gameState.players.find(p => p.id === id);
+    return currentPlayer && currentPlayer.initialRole ? `玩家-${currentPlayer.username}：${log}` : `未知角色：${log}`;
   };
 
   const renderGameConfig = () => {
-    return roles.map((role, index) => (
-      <p key={index}>{role.name}：{role.count}</p>
+    return roles.filter(role => role.count > 0).map((role, index) => (
+        <p key={index}>{role.name}：{role.count}</p>
     ));
-  };
-
-  const renderWerewolfInfo = () => {
-    const currentPlayer = gameState.players.find(p => p.id === socket.id);
-    if (currentPlayer && currentPlayer.initialRole && currentPlayer.initialRole.name === '狼人') {
-      const werewolves = gameState.players.filter(p => p.initialRole && p.initialRole.name === '狼人' && p.id !== socket.id);
-      if (werewolves.length > 0) {
-        return <p>本局狼人有：{werewolves.map(w => w.username).join(', ')}</p>;
-      } else {
-        return <p>你是唯一的狼人，你可以查看一张底牌。</p>;
-      }
-    }
-    return null;
   };
 
   const resetGame = () => {
@@ -245,13 +229,7 @@ function Room({ socket }) {
 
   useEffect(() => {
     if (gameState) {
-      const currentPlayer = gameState.players.find(p => p.id === socket.id);
-      if (currentPlayer && currentPlayer.hasVoted) {
-        const buttons = document.querySelectorAll('button');
-        buttons.forEach(button => {
-          button.disabled = true;
-        });
-      }
+      
     }
   }, [gameState]);
 
@@ -279,7 +257,7 @@ function Room({ socket }) {
             {gameState && (
               <>
                 <img
-                  src={player.role && visibleCards.includes(player.role) ? player.role.img : '/cardback.png'}
+                  src={gameState.subPhase === '结算环节' ? player.role.img : '/cardback.png'}
                   alt={`玩家${index + 1}`}
                   title={player.username}
                   style={{ width: '100px', height: '150px', margin: '10px 0' }}
@@ -306,7 +284,7 @@ function Room({ socket }) {
             {gameState.leftoverCards.map((card, index) => (
               <img
                 key={index}
-                src='/cardback.png'
+                src={gameState.subPhase === '结算环节' ? card.img : '/cardback.png'}
                 alt={`底牌 ${index + 1}`}
                 title={`底牌 ${index + 1}`}
                 style={{ width: '100px', height: '150px', margin: '10px' }}
@@ -319,11 +297,11 @@ function Room({ socket }) {
 
       {!gameState && (
         <>
-          <h3>角色列表</h3>
+          <h3>角色列表（{roles.reduce((sum, role) => sum + role.count, 0)}/{players.length + 3}）</h3>
           <div className={styles.roleGrid}>
             {roles.map((role, index) => (
               <div key={index} className={styles.roleItem}>
-                <img src={role.img} alt={role.name} title={role.name} style={{ width: '100px', height: '150px', margin: '10px 0' }} /><br/>
+                <img src={role.img} alt={role.name} title={role.name} /><br/>
                 <label>{role.name}: {role.count}</label>
                 {isHost && (
                   <>
@@ -343,7 +321,7 @@ function Room({ socket }) {
             <button onClick={startGame}>开始游戏</button>
           ) : (
             gameState.subPhase === '结算环节' ? (
-              <button onClick={resetGame} disabled={false}>重新开始</button>
+              <button onClick={resetGame} >重新开始</button>
             ) : (
               <button onClick={nextPhase}>下一阶段</button>
             )
@@ -353,28 +331,38 @@ function Room({ socket }) {
 
       {gameState && (
         <>
-          <h3>当前身份</h3>
+          <h3>初始身份</h3>
           <div className={styles.currentRole}>
             <img src={getRoleImage()} alt={getRoleName()} title={getRoleName()} />
           </div>
-          {renderWerewolfInfo()}
           <h3>当前阶段</h3>
           <div className={styles.currentPhase}>
             <p>{`${gameState.majorPhase} - ${gameState.subPhase}`}</p>
-          </div>
-          {gameState.subPhase === '讨论环节' && gameState.discussionInfo && (
+            {gameState.subPhase === '讨论环节' && gameState.discussionInfo && (
             <div className={styles.discussionInfo}>
               <p>从 {gameState.discussionInfo.startingPlayer.username} 开始，按 {gameState.discussionInfo.direction} 顺序发言。</p>
             </div>
           )}
+          </div>
           <h3>游戏日志</h3>
           <div className={styles.logs}>
             <ul>
-              {logs[socket.id] && logs[socket.id].map((log, index) => (
-                <li key={index}>{getLogMessage(log)}</li>
-              ))}
+                {gameState.subPhase !== '结算环节' ? (
+                    logs[socket.id] && Object.keys(logs[socket.id]).map(key => (
+                        logs[socket.id][key].map((log, index) => (
+                            <li key={`${key}-${index}`}>{getLogMessage(log, socket.id)}</li>
+                        ))
+                    ))
+                ) : (
+                    Object.keys(logs).map(socketId => (
+                        logs[socketId]['2'] && logs[socketId]['2'].map((log, index) => (
+                            <li key={`${socketId}-1-${index}`}>{getLogMessage(log, socketId)}</li>
+                        ))
+                    ))
+                )}
             </ul>
           </div>
+
           {gameState.subPhase === '结算环节' && (
             <>
               <h3>投票结果</h3>
@@ -410,3 +398,8 @@ function Room({ socket }) {
 }
 
 export default Room;
+
+
+
+
+
