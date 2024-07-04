@@ -44,6 +44,7 @@ function Room({ socket }) {
         setPlayers(response.players || []);
         setRoles(response.roles || roles);
         setIsHost(response.host === socket.id);
+        setGameState(response.gameState);
       } else {
         alert(response.message);
       }
@@ -269,10 +270,10 @@ function Room({ socket }) {
               {player.username === null ? (
                 <button onClick={() => joinGame(index)}>加入</button>
               ) : (
-                !gameState && isHost && <button onClick={() => removePlayer(index)}>移除</button>
+                (!gameState || !gameState.started) && isHost && <button onClick={() => removePlayer(index)}>移除</button>
               )}
             </label>
-            {gameState && (
+            {gameState && gameState.started && (
               <>
                 <img
                   src={gameState.subPhase === '结算环节' ? player.role.img : '/cardback.png'}
@@ -295,7 +296,7 @@ function Room({ socket }) {
         ))}
       </div>
 
-      {gameState && (
+      {gameState && gameState.started && (
         <>
           <h3>底牌</h3>
           <div className={styles.deckGrid}>
@@ -313,7 +314,7 @@ function Room({ socket }) {
         </>
       )}
 
-      {!gameState && (
+      {(!gameState || !gameState.started) && (
         <>
           <h3>角色列表（{roles.reduce((sum, role) => sum + role.count, 0)}/{players.length + 3}）</h3>
           <div className={styles.roleGrid}>
@@ -335,7 +336,7 @@ function Room({ socket }) {
 
       {isHost && (
         <>
-          {!gameState ? (
+          {!gameState || !gameState.started ? (
             <button onClick={startGame}>开始游戏</button>
           ) : (
             gameState.subPhase === '结算环节' ? (
@@ -347,7 +348,7 @@ function Room({ socket }) {
         </>
       )}
 
-      {gameState && (
+      {gameState && gameState.started && (
         <>
           <h3>初始身份</h3>
           <div className={styles.currentRole}>
@@ -401,7 +402,7 @@ function Room({ socket }) {
         </>
       )}
 
-      {gameState && (
+      {gameState && gameState.started && (
         <>
           <h3>本局游戏配置</h3>
           <div className={styles.gameConfig}>
@@ -410,7 +411,7 @@ function Room({ socket }) {
         </>
       )}
 
-      {!gameState && <button onClick={leaveRoom}>离开房间</button>}
+      {(!gameState || !gameState.started) && <button onClick={leaveRoom}>离开房间</button>}
     </div>
   );
 }
