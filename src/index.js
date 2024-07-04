@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { HashRouter as Router } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import App from './App';
 
@@ -13,10 +13,13 @@ socket.on('connect', () => {
   console.log('connected to server with id', socket.id);
 
   // 从缓存中获取房间id
-  if(localStorage.getItem('room')) {
-    // 获取服务器的最新信息
-    socket.emit('getLatestInfo', { room: localStorage.getItem('room')});
-  }
+  // let roomID=useParams().roomID;
+  // if(useParams().roomID) {
+  //   // 获取服务器的最新信息
+  //   console.log('connected to server with room', roomID);
+
+  //   socket.emit('getLatestInfo', { room: useParams().roomID});
+  // }
   
 });
 

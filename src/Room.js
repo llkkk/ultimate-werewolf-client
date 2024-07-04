@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useParams  } from 'react-router-dom';
 import styles from './App.module.css';  // 确保导入了 CSS Modules 文件
 
 
@@ -7,14 +7,25 @@ import styles from './App.module.css';  // 确保导入了 CSS Modules 文件
 
 function Room({ socket }) {
   const navigate = useNavigate();
-  const [roomID, setRoomID] = useState(localStorage.getItem('room') || '');
+  const {roomID} = useParams();
+
+    useEffect(() => {
+      if (roomID) {
+        console.log('connected to server with room', roomID);
+        socket.emit('getLatestInfo', { room: roomID });
+      }
+    }, [roomID, socket]);
   const [username, setUsername] = useState(localStorage.getItem('username') || '');
   const [players, setPlayers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [gameState, setGameState] = useState(null);
   const [preGameState, setPreRoles] = useState([]);
-  const [textToCopy, setTextToCopy] = useState({roomID});
 
+  const handleCopy = (textToCopy) => {
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      alert("复制连接成功")
+    });
+  };
   const abilities = {
     viewHand: { name: '查看手牌', max: 1},
     swapHand: { name: '交换手牌', max: 1},
@@ -33,8 +44,9 @@ function Room({ socket }) {
   const [swapTargets, setSwapTargets] = useState([]);
 
   useEffect(() => {
-    if (!roomID || !username) {
+    if (!username) {
       console.error('Room ID or username is undefined');
+      
       navigate('/');
       return;
     }
@@ -100,29 +112,29 @@ function Room({ socket }) {
   }, [socket, roomID, username, navigate]);
 
 
-  const handleCopy = ({roomID}) => {
-    console.log('Copying text:', roomID); // 确认传递的是字符串
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(roomID).then(() => {
-        alert("复制成功！");
-      }).catch(err => {
-        console.error("Failed to copy text: ", err);
-      });
-    } else {
-      // Fallback method using execCommand
-      const textArea = document.createElement("textarea");
-      textArea.value = roomID;
-      document.body.appendChild(textArea);
-      textArea.select();
-      try {
-        document.execCommand('copy');
-        alert("复制成功！");
-      } catch (err) {
-        console.error("Failed to copy text: ", err);
-      }
-      document.body.removeChild(textArea);
-    }
-  };
+  // const handleCopy = ({roomID}) => {
+  //   console.log('Copying text:', roomID); // 确认传递的是字符串
+  //   if (navigator.clipboard && navigator.clipboard.writeText) {
+  //     navigator.clipboard.writeText(roomID).then(() => {
+  //       alert("复制成功！");
+  //     }).catch(err => {
+  //       console.error("Failed to copy text: ", err);
+  //     });
+  //   } else {
+  //     // Fallback method using execCommand
+  //     const textArea = document.createElement("textarea");
+  //     textArea.value = roomID;
+  //     document.body.appendChild(textArea);
+  //     textArea.select();
+  //     try {
+  //       document.execCommand('copy');
+  //       alert("复制成功！");
+  //     } catch (err) {
+  //       console.error("Failed to copy text: ", err);
+  //     }
+  //     document.body.removeChild(textArea);
+  //   }
+  // };
 
 
   const handleRoleChange = (index, delta) => {
@@ -252,7 +264,7 @@ function Room({ socket }) {
 
   return (
     <div className={styles.container}>
-      <h2>房间号:<span onClick={() => handleCopy(textToCopy)} style={{ cursor: 'pointer', userSelect: 'none' }}>
+      <h2>房间号:<span onClick={() => handleCopy(window.location.href)} style={{ cursor: 'pointer', userSelect: 'none' }}>
           {roomID}
         </span></h2>
       <div className={styles.message}>
