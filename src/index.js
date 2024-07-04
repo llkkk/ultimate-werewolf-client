@@ -5,7 +5,7 @@ import { io } from 'socket.io-client';
 import App from './App';
 
 // 连接到 Socket.IO 服务器
-const socket = io('http://192.168.50.44:3000');
+const socket = io('http://117.72.8.112:3000');
 
 socket.on('connect', () => {
   console.log('connected to server with id', socket.id);
