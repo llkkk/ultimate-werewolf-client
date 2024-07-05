@@ -119,7 +119,7 @@ function Room({ socket }) {
   const handleCopy = ({roomID}) => {
     console.log('Copying text:', roomID); // 确认传递的是字符串
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(roomID).then(() => {
+      navigator.clipboard.writeText(window.location.href).then(() => {
         alert("复制成功！");
       }).catch(err => {
         console.error("Failed to copy text: ", err);
@@ -356,7 +356,7 @@ function Room({ socket }) {
 
       {(!gameState || !gameState.started) && (
         <>
-          <h3>角色列表（{roles.reduce((sum, role) => sum + role.count, 0)}/{players.length + 3}）</h3>
+          <h3>角色列表（<span style={{color:((roles.reduce((sum, role) => sum + role.count, 0))>(players.length + 3))?'red':'black'}}>{roles.reduce((sum, role) => sum + role.count, 0)}</span>/{players.length + 3}）</h3>
           <div className={styles.roleGrid}>
             {roles.map((role, index) => (
               <div key={index} className={styles.roleItem}  onClick={() => handleRoleClick(index)}>

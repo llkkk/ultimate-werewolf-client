@@ -129,10 +129,16 @@ h2, h3 {
 }
 .infoIcon {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 3px;
+  right: 3px;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 11px;
+  text-align: center;
+  width: 13px;
+  height: 13px;
+  background-color: #ff4d4d;
+  color:white;
+  border-radius: 50%;
 }
 
 .tooltip {
