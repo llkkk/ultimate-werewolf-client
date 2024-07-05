@@ -39,6 +39,7 @@ function Room({ socket }) {
 
   
   const [isHost, setIsHost] = useState(localStorage.getItem('host') === socket.id);
+  const [host, setHost] = useState(localStorage.getItem('host')||'');
   const [logs, setLogs] = useState({});
   const [actionDenied, setActionDenied] = useState('');
   const [swapTargets, setSwapTargets] = useState([]);
@@ -56,6 +57,7 @@ function Room({ socket }) {
         setPlayers(response.players || []);
         setRoles(response.roles || roles);
         setIsHost(response.host === socket.id);
+        setHost(response.host);
         setGameState(response.gameState);
       } else {
         alert(response.message);
@@ -74,10 +76,13 @@ function Room({ socket }) {
 
     socket.on('updateHost', (host) => {
       setIsHost(host === socket.id);
+      setHost(host);
+
     });
 
     socket.on('newHost', () => {
       setIsHost(true);
+      setHost(socket.id);
       alert('你已成为新的房主');
     });
 
@@ -135,15 +140,37 @@ function Room({ socket }) {
   //     document.body.removeChild(textArea);
   //   }
   // };
+  const [showInfo, setShowInfo] = useState({});
 
-
+  const handleRoleClick = (index) => {
+    if (!isHost) return;
+    const updatedRoles = roles.map((role, i) => {
+      if(index!==i)
+        return role;
+      if (role.name === '狼人' || role.name === '村民') {
+        role.count = (role.count + 1) % 4;
+        if (role.count === 0) role.count = 0;
+      } else {
+        role.count = (role.count + 1) % 2;
+        if (role.count === 0) role.count = 0;
+      }
+      return role;
+    });
+    setRoles(updatedRoles);
+    socket.emit('updateRoles', { room: roomID, roles: updatedRoles });
+  };
   const handleRoleChange = (index, delta) => {
     if (!isHost) return;
     const updatedRoles = roles.map((role, i) => i === index ? { ...role, count: role.count + delta } : role);
     setRoles(updatedRoles);
     socket.emit('updateRoles', { room: roomID, roles: updatedRoles });
   };
-
+  const handleInfoClick = (index) => {
+    setShowInfo(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
   const joinGame = (index) => {
     if (players[index] && players[index].username) return;
     socket.emit('joinGame', { room: roomID, username, index }, (response) => {
@@ -276,6 +303,7 @@ function Room({ socket }) {
         {players.map((player, index) => (
           <div key={index} className={styles.playerItem}>
             <label>
+              {host==player.id && (<span style={{color:true?'red':'black'}}>[房主]</span>)}
               <span style={{ color: player.id === socket.id ? 'red' : 'black' }}>
                 玩家 {index + 1}: {player.username}
               </span>
@@ -331,15 +359,12 @@ function Room({ socket }) {
           <h3>角色列表（{roles.reduce((sum, role) => sum + role.count, 0)}/{players.length + 3}）</h3>
           <div className={styles.roleGrid}>
             {roles.map((role, index) => (
-              <div key={index} className={styles.roleItem}>
+              <div key={index} className={styles.roleItem}  onClick={() => handleRoleClick(index)}>
                 <img src={role.img} alt={role.name} title={role.name} /><br/>
+                <div className={styles.infoIcon} data-tooltip={role.description}>
+              ?
+            </div>
                 <label>{role.name}: {role.count}</label>
-                {isHost && (
-                  <>
-                    <button onClick={() => handleRoleChange(index, -1)}>-</button>
-                    <button onClick={() => handleRoleChange(index, 1)}>+</button>
-                  </>
-                )}
               </div>
             ))}
           </div>
