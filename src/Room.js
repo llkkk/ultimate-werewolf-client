@@ -139,8 +139,14 @@ function Room({ socket }) {
       document.body.removeChild(textArea);
     }
   };
-  const [showInfo, setShowInfo] = useState({});
+  const [tooltip, setTooltip] = useState({ visible: false, content: '' });
+  const handleInfoHover = (description) => {
+    setTooltip({ visible: true, content: description });
+  };
 
+  const handleInfoLeave = () => {
+    setTooltip({ visible: false, content: '' });
+  };
   const handleRoleClick = (index) => {
     if (!isHost) return;
     const updatedRoles = roles.map((role, i) => {
@@ -164,12 +170,7 @@ function Room({ socket }) {
     setRoles(updatedRoles);
     socket.emit('updateRoles', { room: roomID, roles: updatedRoles });
   };
-  const handleInfoClick = (index) => {
-    setShowInfo(prev => ({
-      ...prev,
-      [index]: !prev[index]
-    }));
-  };
+  
   const joinGame = (index) => {
     if (players[index] && players[index].username) return;
     socket.emit('joinGame', { room: roomID, username, index }, (response) => {
@@ -360,12 +361,21 @@ function Room({ socket }) {
             {roles.map((role, index) => (
               <div key={index} className={styles.roleItem}  onClick={() => handleRoleClick(index)}>
                 <img src={role.img} alt={role.name} title={role.name} /><br/>
-                <div className={styles.infoIcon} data-tooltip={role.description}>
+                <div 
+              className={styles.infoIcon} 
+              onMouseEnter={() => handleInfoHover(role.description)} 
+              onMouseLeave={handleInfoLeave}
+            >
               ?
             </div>
                 <label>{role.name}: {role.count}</label>
               </div>
             ))}
+            {tooltip.visible && (
+        <div className={styles.tooltip}>
+          {tooltip.content}
+        </div>
+      )}
           </div>
         </>
       )}
