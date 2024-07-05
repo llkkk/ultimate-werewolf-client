@@ -11,8 +11,6 @@ function Room({ socket }) {
 
     useEffect(() => {
       if (roomID) {
-        console.log('connected to server with room', roomID);
-        socket.emit('getLatestInfo', { room: roomID });
       }
     }, [roomID, socket]);
   const [username, setUsername] = useState(localStorage.getItem('username') || '');
@@ -21,11 +19,6 @@ function Room({ socket }) {
   const [gameState, setGameState] = useState(null);
   const [preGameState, setPreRoles] = useState([]);
 
-  const handleCopy = (textToCopy) => {
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      alert("复制连接成功")
-    });
-  };
   const abilities = {
     viewHand: { name: '查看手牌', max: 1},
     swapHand: { name: '交换手牌', max: 1},
@@ -77,12 +70,18 @@ function Room({ socket }) {
     socket.on('updateHost', (host) => {
       setIsHost(host === socket.id);
       setHost(host);
-
     });
 
     socket.on('newHost', () => {
       setIsHost(true);
       setHost(socket.id);
+      alert('你已成为新的房主');
+    });
+
+    socket.on('newHostAndUpdatePlayer', (players) => {
+      setIsHost(true);
+      setHost(socket.id);
+      setPlayers(players || []);
       alert('你已成为新的房主');
     });
 
@@ -117,29 +116,29 @@ function Room({ socket }) {
   }, [socket, roomID, username, navigate]);
 
 
-  // const handleCopy = ({roomID}) => {
-  //   console.log('Copying text:', roomID); // 确认传递的是字符串
-  //   if (navigator.clipboard && navigator.clipboard.writeText) {
-  //     navigator.clipboard.writeText(roomID).then(() => {
-  //       alert("复制成功！");
-  //     }).catch(err => {
-  //       console.error("Failed to copy text: ", err);
-  //     });
-  //   } else {
-  //     // Fallback method using execCommand
-  //     const textArea = document.createElement("textarea");
-  //     textArea.value = roomID;
-  //     document.body.appendChild(textArea);
-  //     textArea.select();
-  //     try {
-  //       document.execCommand('copy');
-  //       alert("复制成功！");
-  //     } catch (err) {
-  //       console.error("Failed to copy text: ", err);
-  //     }
-  //     document.body.removeChild(textArea);
-  //   }
-  // };
+  const handleCopy = ({roomID}) => {
+    console.log('Copying text:', roomID); // 确认传递的是字符串
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(roomID).then(() => {
+        alert("复制成功！");
+      }).catch(err => {
+        console.error("Failed to copy text: ", err);
+      });
+    } else {
+      // Fallback method using execCommand
+      const textArea = document.createElement("textarea");
+      textArea.value = roomID;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        alert("复制成功！");
+      } catch (err) {
+        console.error("Failed to copy text: ", err);
+      }
+      document.body.removeChild(textArea);
+    }
+  };
   const [showInfo, setShowInfo] = useState({});
 
   const handleRoleClick = (index) => {
@@ -291,7 +290,7 @@ function Room({ socket }) {
 
   return (
     <div className={styles.container}>
-      <h2>房间号:<span onClick={() => handleCopy(window.location.href)} style={{ cursor: 'pointer', userSelect: 'none' }}>
+      <h2>房间号:<span onClick={() => handleCopy({roomID})} style={{ cursor: 'pointer', userSelect: 'none' }}>
           {roomID}
         </span></h2>
       <div className={styles.message}>
@@ -303,9 +302,9 @@ function Room({ socket }) {
         {players.map((player, index) => (
           <div key={index} className={styles.playerItem}>
             <label>
-              {host==player.id && (<span style={{color:true?'red':'black'}}>[房主]</span>)}
+              {host==player.id && (<span style={{color:true?'red':'black'}}>※</span>)}
               <span style={{ color: player.id === socket.id ? 'red' : 'black' }}>
-                玩家 {index + 1}: {player.username}
+                玩家 {index + 1}: <p>{player.username}</p>
               </span>
               {player.username === null ? (
                 <button onClick={() => joinGame(index)}>加入</button>

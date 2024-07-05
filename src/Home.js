@@ -30,7 +30,7 @@ function Home({ socket }) {
     const newRoomID = uuidv4().slice(0, 8); // 生成唯一的房间ID 截取前10个字符
     socket.emit('createRoom', { id: newRoomID, username }, (response) => {
       if (response.status === 'ok') {
-        // localStorage.setItem('room', newRoomID);
+        localStorage.setItem('roomID', newRoomID);
         localStorage.setItem('username', username);
         localStorage.setItem('roles', JSON.stringify(response.roles)); // 保存角色配置
         localStorage.setItem('host', response.host); // 保存房主信息
