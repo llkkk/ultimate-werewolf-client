@@ -11,11 +11,15 @@ function App({ socket }) {
 
   socket.on('connect', () => {
     console.log('connected to server with id', socket.id);
+
   
 
     if(username && roomID) {
       // 获取服务器的最新信息
       console.log('reconnected to server with room', roomID, username);
+
+      // 发送心跳信号
+      socket.emit('heartbeat', username);
 
       // 重新加入房间
       socket.emit('joinRoom', { roomID, username }, (response) => {
