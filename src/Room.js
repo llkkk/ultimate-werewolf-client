@@ -118,13 +118,6 @@ function Room({ socket }) {
       showTip('你已成为新的房主');
     });
 
-    socket.on('newHostAndUpdatePlayer', (players) => {
-      setIsHost(true);
-      setHost(socket.id);
-      setPlayers(players || []);
-      showTip('你已成为新的房主');
-    });
-
     socket.on('gameStarted', (gameState) => {
       setGameState(gameState);
       setLogs(gameState.logs);
