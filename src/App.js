@@ -1,14 +1,16 @@
 import React, {useState} from 'react';
-import {  Route, Routes } from 'react-router-dom';
+import {  Route, Routes,useLocation } from 'react-router-dom';
 import Home from './Home';
 import Room from './Room';
+import { TipProvider } from './globalTip';
 
 function App({ socket }) {
-
+  const path = location.pathname;
+  const roomMatch = path.match(/\/room(\w+)/);
+  const isMatch = roomMatch ? roomMatch[1] : '';
   const [username, setUsername] = useState(localStorage.getItem('username'));
-  const [roomID, setRoomID] = useState(localStorage.getItem('roomID'));
+  const [roomID, setRoomID] = useState(isMatch? path.substring(path.lastIndexOf('/') + 1) :null);
   
-
   socket.on('connect', () => {
     console.log('connected to server with id', socket.id);
   
@@ -35,10 +37,13 @@ function App({ socket }) {
 
 
   return (
+    <TipProvider>
     <Routes>
       <Route path="/" element={<Home socket={socket} />} />
       <Route path="/room/:roomID" element={<Room socket={socket} />} />
     </Routes>
+    </TipProvider>
+    
   );
 }
 
