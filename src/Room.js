@@ -65,15 +65,15 @@ function Room({ socket }) {
       console.error('Room ID or username is undefined');
       //TODO give a random name 
       localStorage.setItem('roomID', roomID);
-      username= generateRandomPlayerName();
-      localStorage.setItem('username', username);
-      socket.emit('joinRoom', { room: roomID, username }, (response) => {
+      let newUserName= generateRandomPlayerName();
+      localStorage.setItem('username', newUserName);
+      socket.emit('joinRoom', { room: roomID, newUserName }, (response) => {
         if (response.status === 'ok') {
           localStorage.setItem('roles', JSON.stringify(response.roles)); // 保存角色配置
           localStorage.setItem('players', JSON.stringify(response.players)); // 保存玩家信息
           localStorage.setItem('host', response.host); // 保存房主信息
           saveRoomToLocalStorage(roomID);
-          setUsername(username);
+          setUsername(newUserName);
           setPlayers(response.players || []);
           setRoles(response.roles || roles);
           setIsHost(response.host === socket.id);
