@@ -16,6 +16,7 @@ function Room({ socket }) {
   const [username, setUsername] = useState(localStorage.getItem('username') || '');
   const [players, setPlayers] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [isHide,setIsHide] = useState(false);
   const [gameState, setGameState] = useState(null);
   const [preGameState, setPreRoles] = useState([]);
 
@@ -133,8 +134,12 @@ function Room({ socket }) {
     }
   };
   const [tooltip, setTooltip] = useState({ visible: false, content: '' });
-  const handleInfoHover = (description) => {
+  const handleInfoClick = (e,description) => {
+    e.stopPropagation();
     setTooltip({ visible: true, content: description });
+    setTimeout(() => {
+      setTooltip({ visible: false, content: description });
+    }, 1500);
   };
 
   const handleInfoLeave = () => {
@@ -148,7 +153,10 @@ function Room({ socket }) {
       if (role.name === '狼人' || role.name === '村民') {
         role.count = (role.count + 1) % 4;
         if (role.count === 0) role.count = 0;
-      } else {
+      } else if(role.name === '守夜人' ){
+        if (role.count === 0) role.count = 2;
+        else  role.count = 0;
+      }else{
         role.count = (role.count + 1) % 2;
         if (role.count === 0) role.count = 0;
       }
@@ -180,7 +188,6 @@ function Room({ socket }) {
     if (!isHost) return;
     socket.emit('removePlayer', { room: roomID, index });
   };
-
   const leaveRoom = () => {
     socket.emit('leaveRoom', { room: roomID, username });
     navigate('/');
@@ -356,7 +363,7 @@ function Room({ socket }) {
                 <img src={role.img} alt={role.name} title={role.name} /><br/>
                 <div 
               className={styles.infoIcon} 
-              onMouseEnter={() => handleInfoHover(role.description)} 
+              onClick={(e) => handleInfoClick(e,role.description)} 
               onMouseLeave={handleInfoLeave}
             >
               ?
@@ -390,8 +397,8 @@ function Room({ socket }) {
       {gameState && gameState.started && (
         <>
           <h3>初始身份</h3>
-          <div className={styles.currentRole}>
-            <img src={getRoleImage()} alt={getRoleName()} title={getRoleName()} />
+          <div onClick={()=>setIsHide(!isHide)} className={styles.currentRole}>
+            <img src={isHide?'/cardback.png':getRoleImage()} alt={getRoleName()} title={getRoleName()} />
           </div>
           <h3>当前阶段</h3>
           <div className={styles.currentPhase}>
