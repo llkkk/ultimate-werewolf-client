@@ -190,7 +190,7 @@ function Room({ socket }) {
     const updatedRoles = roles.map((role, i) => {
       if (index !== i)
         return role;
-      if (role.name === '狼人' || role.name === '村民' || role.name === '诅咒者' ||  role.name === '哨兵') {
+      if (role.name === '狼人' || role.name === '村民') {
         role.count = (role.count + 1) % 4;
         if (role.count === 0) role.count = 0;
       } else if (role.name === '守夜人') {
@@ -489,7 +489,7 @@ function Room({ socket }) {
                 {gameState.voteResults && gameState.voteResults.length > 0 && (
                   <ul>
                     {gameState.voteResults.map((vote, index) => (
-                      <li key={index}>{players.find(p => p.id === vote.playerId).username} 投票给 {players.find(p => p.id === vote.targetId).username}</li>
+                      <li key={index}>{(players.find(p => p.id === vote.playerId)) && (players.find(p => p.id === vote.playerId)).username} 投票给 {(players.find(p => p.id === vote.targetId)) && players.find(p => p.id === vote.targetId).username}</li>
                     ))}
                   </ul>
                 )}
