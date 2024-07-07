@@ -32,6 +32,9 @@ function Room({ socket }) {
     swapHand: { name: '交换手牌', max: 1 },
     viewSelfHand: { name: '确认自己手牌', max: 1 },
     swapSelfHandDeck: { name: '交换手牌和任意一张底牌', max: 1 },
+    viewAndSteal: { name: '查看并交换底牌', max: 1 },
+    lockPlayer: { name: '锁定玩家身份', max: 1},
+    votePlayer: { name: '票出该玩家则获胜', max: 1},
   };
 
 
@@ -187,7 +190,7 @@ function Room({ socket }) {
     const updatedRoles = roles.map((role, i) => {
       if (index !== i)
         return role;
-      if (role.name === '狼人' || role.name === '村民') {
+      if (role.name === '狼人' || role.name === '村民' || role.name === '诅咒者' ||  role.name === '哨兵') {
         role.count = (role.count + 1) % 4;
         if (role.count === 0) role.count = 0;
       } else if (role.name === '守夜人') {
@@ -279,18 +282,26 @@ function Room({ socket }) {
         const currentPlayer = gameState.players.find(p => p.id === socket.id);
         nightAction(abilities.viewAndSwap.name, { target1: { type: 'player', id: player.id }, target2: { type: 'player', id: currentPlayer.id } });
       }
-
+    } else if (canPerformAction(abilities.votePlayer)) {
+      if (player.id != socket.id) {
+        nightAction(abilities.votePlayer.name, { target1: { type: 'player', id: player.id }});
+      }
+    } else if (canPerformAction(abilities.lockPlayer)) {
+      nightAction(abilities.lockPlayer.name, { target1: { type: 'player', id: player.id }});
     }
   };
 
   const handleDeckClick = (index) => {
     if (canPerformAction(abilities.seerViewDeck)) {
-      nightAction(abilities.seerViewDeck.name, { targets: [index] });
+      nightAction(abilities.seerViewDeck.name, { target1: { type: 'deck', id: index } });
     } else if (canPerformAction(abilities.wolfViewDeck)) {
-      nightAction(abilities.wolfViewDeck.name, { targets: [index] });
+      nightAction(abilities.wolfViewDeck.name, { target1: { type: 'deck', id: index } });
     } else if (canPerformAction(abilities.swapSelfHandDeck)) {
       nightAction(abilities.swapSelfHandDeck.name, { target1: { type: 'player', id: socket.id }, target2: { type: 'deck', id: index } });
-    }
+    } else if(canPerformAction(abilities.viewAndSteal)) {
+      const currentPlayer = gameState.players.find(p => p.id === socket.id);
+      nightAction(abilities.viewAndSteal.name, { target1: { type: 'deck', id: index } , target2: { type: 'player', id: currentPlayer.id } });
+    } 
   };
 
   const getRoleName = () => {

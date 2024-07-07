@@ -101,7 +101,7 @@ function Home({ socket }) {
           onChange={(e) => setRoomID(e.target.value)}
           placeholder="输入房间号" style={{ flex: 2, textAlign: 'center',marginRight:'20px' }}
         />
-        <button onClick={joinRoom} style={{ flex: 1, width: '100%' }}>加入房间</button>
+        <button onClick={() => joinRoom(roomID)} style={{ flex: 1, width: '100%' }}>加入房间</button>
       </div>
 
       <div style={{ border: '1px solid', padding: '10px' }}>
