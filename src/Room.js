@@ -321,7 +321,10 @@ function Room({ socket }) {
 
   const renderGameConfig = () => {
     return roles.filter(role => role.count > 0).map((role, index) => (
-      <p key={index}>{role.name}：{role.count}</p>
+      <span key={index} style={{ marginRight: '80px' }}>
+        {role.name}：{role.count}
+        {index % 2 !== 0 ? <br /> : null}
+      </span>
     ));
   };
 
@@ -342,10 +345,6 @@ function Room({ socket }) {
       <h2>房间号:<span onClick={() => handleCopy({ roomID })} style={{ cursor: 'pointer', userSelect: 'none' }}>
         {roomID}
       </span></h2>
-      <div className={styles.message}>
-        <p>公告：一夜狼人为发言游戏，建议线下玩，或群语音开麦玩。</p>
-        {actionDenied && <p style={{ color: 'red' }}>{actionDenied}</p>}
-      </div>
       <h3>玩家列表</h3>
       <div className={styles.playerGrid}>
         {players.map((player, index) => (
@@ -367,10 +366,10 @@ function Room({ socket }) {
             {gameState && gameState.started && (
               <>
                 <img
-                  src={gameState.subPhase === '结算环节' ? player.role.img : '/cardback.png'}
+                  src={player.id === socket.id || gameState.subPhase === '结算环节' ? player.role.img : '/cardback.png'}
                   alt={`玩家${index + 1}`}
                   title={player.username}
-                  style={{ width: '100px', height: '150px', margin: '10px 0' }}
+                  style={{ width: '60px', height: '90px', margin: '10px 0' }}
                   onClick={() => handleCardClick(player)}
                 />
                 {gameState.subPhase === '投票环节' && (
@@ -397,7 +396,7 @@ function Room({ socket }) {
                 src={gameState.subPhase === '结算环节' ? card.img : '/cardback.png'}
                 alt={`底牌 ${index + 1}`}
                 title={`底牌 ${index + 1}`}
-                style={{ width: '100px', height: '150px', margin: '10px' }}
+                style={{ width: '80px', height: '120px', margin: '10px' }}
                 onClick={() => handleDeckClick(index)}
               />
             ))}
@@ -447,19 +446,15 @@ function Room({ socket }) {
 
       {gameState && gameState.started && (
         <>
-          <h3>初始身份</h3>
-          <div onClick={() => setIsHide(!isHide)} className={styles.currentRole}>
-            <img src={isHide ? '/cardback.png' : getRoleImage()} alt={getRoleName()} title={getRoleName()} />
-          </div>
-          <h3>当前阶段</h3>
+          <h3>当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}</h3>
+          {gameState.subPhase === '讨论环节' && gameState.discussionInfo && (
           <div className={styles.currentPhase}>
-            <p>{`${gameState.majorPhase} - ${gameState.subPhase}`}</p>
-            {gameState.subPhase === '讨论环节' && gameState.discussionInfo && (
               <div className={styles.discussionInfo}>
                 <p>从 {gameState.discussionInfo.startingPlayer.username} 开始，按 {gameState.discussionInfo.direction} 顺序发言。</p>
               </div>
-            )}
+            
           </div>
+          )}
           <h3>游戏日志</h3>
           <div className={styles.logs}>
             <ul>
