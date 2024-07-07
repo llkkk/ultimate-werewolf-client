@@ -1,5 +1,5 @@
 // components/GlobalTip.js
-import React, { useState, useContext, createContext } from 'react';
+import React, { useState, useContext, createContext,useEffect } from 'react';
 import styles from './App.module.css';  // 确保导入了 CSS Modules 文件
 
 const TipContext = createContext();
@@ -12,7 +12,7 @@ export const TipProvider = ({ children }) => {
   const showTip = (content) => {
     setTip({ content, visible:true });
     setTimeout(() => {
-      setTip({ content,visible:false});
+      setTip({ content:'',visible:false});
     }, 3000); // 3秒后自动清除通知
   };
 
