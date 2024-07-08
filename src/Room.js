@@ -29,7 +29,6 @@ function Room({ socket }) {
     seerViewDeck: { name: '预言家查看底牌', max: 2 },
     wolfViewDeck: { name: '狼人查看底牌', max: 1 },
     viewAndSwap: { name: '查看并交换手牌', max: 1 },
-    swapHand: { name: '交换手牌', max: 1 },
     viewSelfHand: { name: '确认自己手牌', max: 1 },
     swapSelfHandDeck: { name: '交换手牌和任意一张底牌', max: 1 },
     viewAndSteal: { name: '查看并交换底牌', max: 1 },
@@ -278,12 +277,12 @@ function Room({ socket }) {
 
       }
     } else if (canPerformAction(abilities.viewAndSwap)) {
-      if (player.id != socket.id) {
+      if (player.id !== socket.id) {
         const currentPlayer = gameState.players.find(p => p.id === socket.id);
         nightAction(abilities.viewAndSwap.name, { target1: { type: 'player', id: player.id }, target2: { type: 'player', id: currentPlayer.id } });
       }
     } else if (canPerformAction(abilities.votePlayer)) {
-      if (player.id != socket.id) {
+      if (player.id !== socket.id) {
         nightAction(abilities.votePlayer.name, { target1: { type: 'player', id: player.id }});
       }
     } else if (canPerformAction(abilities.lockPlayer)) {
@@ -350,7 +349,7 @@ function Room({ socket }) {
         {players.map((player, index) => (
           <div key={index} className={styles.playerItem}>
             <label>
-              {host == player.id && (<span style={{ color: true ? 'red' : 'black' }}>※</span>)}
+              {host === player.id && (<span style={{ color: 'red' }}>※</span>)}
               <span style={{ color: player.id === socket.id ? 'red' : 'black', fontSize: '0.5em' }}>
                 玩家 {index + 1}:
               </span>
@@ -360,7 +359,7 @@ function Room({ socket }) {
               {player.username === null ? (
                 <button onClick={() => joinGame(index)}>加入</button>
               ) : (
-                (!gameState || !gameState.started) && isHost && player.id!=socket.id && <button onClick={() => removePlayer(index)}>移除</button>
+                (!gameState || !gameState.started) && isHost && player.id!==socket.id && <button onClick={() => removePlayer(index)}>移除</button>
               )}
             </label>
             {gameState && gameState.started && (
