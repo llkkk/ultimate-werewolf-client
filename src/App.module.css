@@ -153,6 +153,12 @@ h2, h3 {
   white-space: nowrap;
   z-index: 1000;
 }
+.onlineStatus{
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
 /* 媒体查询 */
 @media (max-width: 768px) {
   .container {
