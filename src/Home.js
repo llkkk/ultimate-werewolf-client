@@ -74,6 +74,7 @@ function Home({ socket }) {
         localStorage.setItem('players', JSON.stringify(response.players)); // 保存玩家信息
         localStorage.setItem('host', response.host); // 保存房主信息
         saveRoomToLocalStorage(roomID);
+        localStorage.setItem('roomID', roomID);
         navigate(`/room/${roomID}`);
       } else {
         showTip(response.message);

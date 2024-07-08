@@ -12,10 +12,6 @@ function Room({ socket }) {
   const { roomID } = useParams();
   const { showTip } = useTip();
 
-  useEffect(() => {
-    if (roomID) {
-    }
-  }, [roomID, socket]);
   const [username, setUsername] = useState(localStorage.getItem('username') || '');
   const [players, setPlayers] = useState([]);
   const [roles, setRoles] = useState([]);
@@ -150,7 +146,8 @@ function Room({ socket }) {
       setPlayers(gameState.players); // 确保玩家状态更新
       console.log('Game state restart', gameState);
     });
-  }, [socket, roomID, username, navigate]);
+  }, [socket, roomID, navigate]);
+  
 
   const handleCopy = ({ roomID }) => {
     console.log('Copying text:', roomID); // 确认传递的是字符串
