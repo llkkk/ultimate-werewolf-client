@@ -341,46 +341,6 @@ function Room({ socket }) {
       <h2>房间号:<span onClick={() => handleCopy({ roomID })} style={{ cursor: 'pointer', userSelect: 'none' }}>
         {roomID}
       </span></h2>
-      <h3>玩家列表</h3>
-      <div className={styles.playerGrid}>
-        {players.map((player, index) => (
-          <div key={index} className={styles.playerItem} onClick={player.username === null ?joinGame(index):removePlayer(index)} > 
-              {host === player.id && (<span className={styles.roomHolder} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>房主</span>)}
-              <span className={styles.playerItemIndex} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>
-                 {index + 1}
-              </span>
-              {(!gameState || !gameState.started) && isHost && player.id!==socket.id &&(<span className={styles.removeItem} >
-              ×
-              </span>) }
-              { socket.id===player.id &&(<span className={styles.isMe} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>
-              我
-              </span>) }
-              <div className={styles.userName} style={{ color: player.id === socket.id ? 'red' : 'black' }}>{player.username} <span className={styles.onlineStatus} style={{ backgroundColor: player.offline ? 'grey' : 'green' }}></span>
-              </div>
-
-             
-            {gameState && gameState.started && (
-              <>
-                <img
-                  src={player.id === socket.id || gameState.subPhase === '结算环节' ? player.role.img : '/cardback.png'}
-                  alt={`玩家${index + 1}`}
-                  title={player.username}
-                  style={{ width: '60px', height: '90px', margin: '10px 0' }}
-                  onClick={() => handleCardClick(player)}
-                />
-                {gameState.subPhase === '投票环节' && (
-                  <button
-                    onClick={() => vote(player.id)}
-                    disabled={gameState.players.find(p => p.id === socket.id).hasVoted}
-                  >
-                    投票
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        ))}
-      </div>
       {gameState && gameState.started && (
         <>
           <h3>本局游戏配置</h3>
@@ -406,6 +366,46 @@ function Room({ socket }) {
           </div>
         </>
       )}
+      <h3>玩家列表</h3>
+      <div className={styles.playerGrid}>
+        {players.map((player, index) => (
+          <div key={index} className={styles.playerItem} onClick={player.username === null ?()=>{joinGame(index)}:()=>{removePlayer(index)}} > 
+              {host === player.id && (<span className={styles.roomHolder} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>房主</span>)}
+              <span className={styles.playerItemIndex} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>
+                 {index + 1}
+              </span>
+              {(!gameState || !gameState.started) && isHost && player.id!==socket.id &&(<span className={styles.removeItem} >
+              ×
+              </span>) }
+              { socket.id===player.id &&(<span className={styles.isMe} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>
+              我
+              </span>) }
+              <div className={styles.userName} style={{ color: player.id === socket.id ? 'red' : 'black' }}>{player.username} <span className={styles.onlineStatus} style={{ backgroundColor: player.offline ? 'grey' : 'green' }}></span>
+              </div>
+
+            {gameState && gameState.started && (
+              <>
+                <img
+                  src={player.id === socket.id || gameState.subPhase === '结算环节' ? player.role.img : '/cardback.png'}
+                  alt={`玩家${index + 1}`}
+                  title={player.username}
+                  style={{ width: '60px', height: '90px', margin: '10px 0' }}
+                  onClick={() => handleCardClick(player)}
+                />
+                {gameState.subPhase === '投票环节' && (
+                  <button
+                    onClick={() => vote(player.id)}
+                    disabled={gameState.players.find(p => p.id === socket.id).hasVoted}
+                  >
+                    投票
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+      
 
       {(!gameState || !gameState.started) && (
         <>
