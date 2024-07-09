@@ -31,6 +31,7 @@ function Room({ socket }) {
     lockPlayer: { name: '锁定玩家身份', max: 1},
     votePlayer: { name: '票出该玩家则获胜', max: 1},
   };
+  const daySubPhases = ['讨论环节', '投票环节', '结算环节'];
 
 
   const [isHost, setIsHost] = useState(localStorage.getItem('host') === socket.id);
@@ -38,6 +39,13 @@ function Room({ socket }) {
   const [logs, setLogs] = useState({});
   const [actionDenied, setActionDenied] = useState('');
   const [swapTargets, setSwapTargets] = useState([]);
+  const [isVisible, setIsVisible] = useState(true);
+
+  // 点击事件处理函数
+  const toggleVisibility = () => {
+    setIsVisible(!isVisible);
+  };
+
   const generateRandomPlayerName = () => {
     const characters = 'abcdefghijklmnopqrstuvwxyz';
     const numbers = '0123456789';
@@ -222,6 +230,7 @@ function Room({ socket }) {
 
   const removePlayer = (index) => {
     if (!isHost) return;
+    
     socket.emit('removePlayer', { room: roomID, index });
   };
   const leaveRoom = () => {
@@ -338,12 +347,12 @@ function Room({ socket }) {
 
   return (
     <div className={styles.container}>
-      <h2>房间号:<span onClick={() => handleCopy({ roomID })} style={{ cursor: 'pointer', userSelect: 'none' }}>
+      <h4>房间号:<span onClick={() => handleCopy({ roomID })} style={{ cursor: 'pointer', userSelect: 'none' }}>
         {roomID}
-      </span></h2>
+      </span></h4>
       {gameState && gameState.started && (
         <>
-          <h3>本局游戏配置</h3>
+          <h5>本局游戏配置</h5>
           <div className={styles.gameConfig}>
             {renderGameConfig()}
           </div>
@@ -351,7 +360,7 @@ function Room({ socket }) {
       )}
       {gameState && gameState.started && (
         <>
-          <h3>底牌</h3>
+          <h5>底牌</h5>
           <div className={styles.deckGrid}>
             {gameState.leftoverCards.map((card, index) => (
               <img
@@ -359,17 +368,18 @@ function Room({ socket }) {
                 src={gameState.subPhase === '结算环节' ? card.img : '/cardback.png'}
                 alt={`底牌 ${index + 1}`}
                 title={`底牌 ${index + 1}`}
-                style={{ width: '12vw', height: '18vw', margin: '10px' }}
+                style={{ width: '12vw', height: '18vw', margin: '0.5vw' }}
                 onClick={() => handleDeckClick(index)}
               />
             ))}
           </div>
         </>
       )}
-      <h3>玩家列表</h3>
+      <h5>玩家列表</h5>
       <div className={styles.playerGrid}>
         {players.map((player, index) => (
-          <div key={index} className={styles.playerItem} onClick={player.username === null ?()=>{joinGame(index)}:()=>{removePlayer(index)}} > 
+          <div key={index}>
+          <div  className={styles.playerItem} onClick={player.username === null ?()=>{joinGame(index)}:()=>{removePlayer(index)}} > 
               {host === player.id && (<span className={styles.roomHolder} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>房主</span>)}
               <span className={styles.playerItemIndex} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>
                  {index + 1}
@@ -382,26 +392,32 @@ function Room({ socket }) {
               </span>) }
               <div className={styles.userName} style={{ color: player.id === socket.id ? 'red' : 'black' }}>{player.username} <span className={styles.onlineStatus} style={{ backgroundColor: player.offline ? 'grey' : 'green' }}></span>
               </div>
-
-            {gameState && gameState.started && (
+            
+          </div>
+          {gameState && gameState.started && gameState.subPhase && !daySubPhases.includes(gameState.subPhase) && (
               <>
-                <img
+                {/* <img
                   src={player.id === socket.id || gameState.subPhase === '结算环节' ? player.role.img : '/cardback.png'}
                   alt={`玩家${index + 1}`}
                   title={player.username}
                   style={{ width: '60px', height: '90px', margin: '10px 0' }}
                   onClick={() => handleCardClick(player)}
-                />
-                {gameState.subPhase === '投票环节' && (
-                  <button
+                /> */}
+                 <div  className={styles.playerItemBtn}
+                    onClick={() =>handleCardClick(player)}
+                  >
+                    选择
+                  </div>
+              </>
+            )}
+            {gameState&&gameState.subPhase&&gameState.subPhase === '投票环节' && (
+                  <div  className={styles.playerItemBtn}
                     onClick={() => vote(player.id)}
                     disabled={gameState.players.find(p => p.id === socket.id).hasVoted}
                   >
                     投票
-                  </button>
+                  </div>
                 )}
-              </>
-            )}
           </div>
         ))}
       </div>
@@ -409,7 +425,7 @@ function Room({ socket }) {
 
       {(!gameState || !gameState.started) && (
         <>
-          <h3>角色列表（<span style={{ color: ((roles.reduce((sum, role) => sum + role.count, 0)) > (players.length + 3)) ? 'red' : 'black' }}>{roles.reduce((sum, role) => sum + role.count, 0)}</span>/{players.length + 3}）</h3>
+          <h5>角色列表（<span style={{ color: ((roles.reduce((sum, role) => sum + role.count, 0)) > (players.length + 3)) ? 'red' : 'black' }}>{roles.reduce((sum, role) => sum + role.count, 0)}</span>/{players.length + 3}）</h5>
           <div className={styles.roleGrid}>
             {roles.map((role, index) => (
               <div key={index} className={styles.roleItem} onClick={() => handleRoleClick(index)}>
@@ -448,8 +464,14 @@ function Room({ socket }) {
       )}
 
       {gameState && gameState.started && (
+         
         <>
-          <h3>当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}</h3>
+          <img
+            src={isVisible ? gameState.players.find(p => p.id === socket.id).role.img : '/cardback.png'}
+            style={{ width: '12vw', height: '18vw', margin: '0.5vw' }}
+            onClick={() => toggleVisibility()}
+                /> 
+          <h5>当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}</h5>
           {gameState.subPhase === '讨论环节' && gameState.discussionInfo && (
           <div className={styles.currentPhase}>
               <div className={styles.discussionInfo}>
@@ -458,7 +480,7 @@ function Room({ socket }) {
             
           </div>
           )}
-          <h3>游戏日志</h3>
+          <h5>游戏日志</h5>
           <div className={styles.logs}>
             <ul>
               {gameState.subPhase !== '结算环节' ? (
@@ -479,7 +501,7 @@ function Room({ socket }) {
 
           {gameState.subPhase === '结算环节' && (
             <>
-              <h3>投票结果</h3>
+              <h5>投票结果</h5>
               <div className={styles.voteResults}>
                 {gameState.winner && (
                   <p style={{ color: 'red', fontWeight: 'bold' }}>{gameState.winner}</p>

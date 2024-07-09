@@ -219,6 +219,19 @@ h2, h3 {
   line-height: 3vw;
   color:white
 }
+.playerItemBtn{
+   height: 4vw;
+  width: 6vw;
+  margin-top: 1vw;
+  border-radius: 25%;
+  font-size: 2vw;
+  cursor: pointer;
+  background: grey;
+  color: white;
+  text-align: center;
+  margin-left: 3vw;
+  box-shadow:  3px 3px 3px #c8c9cb, -3px -3px 3px #ffffff;
+}
 .removeItem{
   position: absolute;
   top: 5%;
@@ -248,27 +261,49 @@ h2, h3 {
 
 }
 /* 媒体查询 */
-/* @media (max-width: 768px) {
+@media screen and (min-width: 768px) {
   .container {
     padding: 1vw;
   }
 
   .playerGrid, .roleGrid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 1vw;
+    justify-items: center;
+    justify-content: center;
+    grid-auto-columns: 1fr;
+    grid-auto-rows: 1fr;
   }
-
+  .playerItem {
+    text-align: center;
+    /* padding: 1vw;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1); */
+    border-radius: 50%;
+    background: #ebecef;
+    box-shadow:  3px 3px 3px #c8c9cb, -3px -3px 3px #ffffff;
+    width: 60px;
+    height: 60px;
+    position: relative;
+    justify-content: center;
+  
+  }
   .playerItem img {
-    width: 12vw;
-    height: 12vw;
+    width: 60px;
+    height: 60px;
   }
 
   .deckGrid img {
-    width: 18vw;
-    height: 27vw;
+    width: 60px;
+    height: 90px;
   }
 
   .currentRole img, .roleItem img {
-    width: 14vw;
-    height: 21vw;
+    width: 60px;
+    height: 90px;
   }
 
   .playerItem button, .roleItem button {
@@ -276,4 +311,4 @@ h2, h3 {
   }
   
 }
- */
+ 
