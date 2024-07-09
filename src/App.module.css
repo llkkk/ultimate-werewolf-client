@@ -52,7 +52,7 @@ html, body {
 }
 .gameRoleItem{
   text-align: center;
-  background: #ebecef;
+  background: #ffe6e6;
   box-shadow:  3px 3px 3px #c8c9cb, -3px -3px 3px #ffffff;
   width: 9vw;
   height: 14vw;
@@ -94,9 +94,9 @@ h5{
 .roleItem {
   text-align: center;
   padding: 1vw;
-  border: 1px solid #ddd;
+  border: 1px solid black;
   border-radius: 5px;
-  background-color: #fff;
+  background-color: #ffe6e6;
   box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1);
   position: relative;
 }
@@ -356,7 +356,7 @@ h2, h3 {
     background-color: #fff;
     box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1); */
     border-radius: 50%;
-    background: #ebecef;
+    background: #ffe6e6;
     box-shadow:  3px 3px 3px #c8c9cb, -3px -3px 3px #ffffff;
     width: 60px;
     height: 60px;
@@ -457,7 +457,7 @@ h2, h3 {
     font-size: 20px;
     line-height: 30px;
     cursor: pointer;
-    background: #ebecef;
+    background: #ffe6e6;
     box-shadow:  3px 3px 3px #c8c9cb, -3px -3px 3px #ffffff;
     color:black;
     text-align: center;
