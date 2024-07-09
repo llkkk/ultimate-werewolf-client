@@ -326,10 +326,17 @@ function Room({ socket }) {
 
   const renderGameConfig = () => {
     return roles.filter(role => role.count > 0).map((role, index) => (
-      <span key={index} style={{ marginRight: '80px' }}>
-        {role.name}：{role.count}
-        {index % 2 !== 0 ? <br /> : null}
-      </span>
+          <div key={index} className={styles.gameRoleItem} >
+            <img src={role.img} alt={role.name} title={role.name} />
+            <div
+              className={styles.gameInfoIcon}
+              onClick={(e) => handleInfoClick(e, role.description)}
+              onMouseLeave={handleInfoLeave}
+            >
+              ?
+            </div>
+            <div  className={styles.gameInfoName}>{role.name}</div>
+          </div>
     ));
   };
 
@@ -347,13 +354,13 @@ function Room({ socket }) {
 
   return (
     <div className={styles.container}>
-      <h4>房间号:<span onClick={() => handleCopy({ roomID })} style={{ cursor: 'pointer', userSelect: 'none' }}>
+      <h6>房间号:<span onClick={() => handleCopy({ roomID })} style={{ cursor: 'pointer', userSelect: 'none' }}>
         {roomID}
-      </span></h4>
+      </span></h6>
       {gameState && gameState.started && (
         <>
           <h5>本局游戏配置</h5>
-          <div className={styles.gameConfig}>
+          <div className={styles.gameRole}>
             {renderGameConfig()}
           </div>
         </>
@@ -363,14 +370,14 @@ function Room({ socket }) {
           <h5>底牌</h5>
           <div className={styles.deckGrid}>
             {gameState.leftoverCards.map((card, index) => (
-              <img
+              <><img
                 key={index}
                 src={gameState.subPhase === '结算环节' ? card.img : '/cardback.png'}
                 alt={`底牌 ${index + 1}`}
                 title={`底牌 ${index + 1}`}
-                style={{ width: '12vw', height: '18vw', margin: '0.5vw' }}
-                onClick={() => handleDeckClick(index)}
-              />
+                onClick={() => handleDeckClick(index)} />
+                {/* <div className={styles.deckGridName}>{index===0?'底牌A':(index===1?'底牌B':'底牌C')}</div> */}
+                </>
             ))}
           </div>
         </>
@@ -379,34 +386,24 @@ function Room({ socket }) {
       <div className={styles.playerGrid}>
         {players.map((player, index) => (
           <div key={index}>
-          <div  className={styles.playerItem} onClick={player.username === null ?()=>{joinGame(index)}:()=>{removePlayer(index)}} > 
+          <div  className={styles.playerItem} onClick={player.username === null ?()=>{joinGame(index)}:(gameState && gameState.started && gameState.subPhase && !daySubPhases.includes(gameState.subPhase) )?()=>{handleCardClick(player)}:()=>{removePlayer(index)}} > 
               {host === player.id && (<span className={styles.roomHolder} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>房主</span>)}
-              <span className={styles.playerItemIndex} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>
-                 {index + 1}
-              </span>
               {(!gameState || !gameState.started) && isHost && player.id!==socket.id &&(<span className={styles.removeItem} >
               ×
+              </span>) }
+              { socket.id!==player.id &&(<span className={styles.playerItemIndex} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>
+                {index + 1}
               </span>) }
               { socket.id===player.id &&(<span className={styles.isMe} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>
               我
               </span>) }
-              <div className={styles.userName} style={{ color: player.id === socket.id ? 'red' : 'black' }}>{player.username} <span className={styles.onlineStatus} style={{ backgroundColor: player.offline ? 'grey' : 'green' }}></span>
-              </div>
-            
+              <span className={styles.onlineStatus} style={{ backgroundColor: player.offline ? 'grey' : 'green' }}></span>
           </div>
           {gameState && gameState.started && gameState.subPhase && !daySubPhases.includes(gameState.subPhase) && (
               <>
-                {/* <img
-                  src={player.id === socket.id || gameState.subPhase === '结算环节' ? player.role.img : '/cardback.png'}
-                  alt={`玩家${index + 1}`}
-                  title={player.username}
-                  style={{ width: '60px', height: '90px', margin: '10px 0' }}
-                  onClick={() => handleCardClick(player)}
-                /> */}
                  <div  className={styles.playerItemBtn}
-                    onClick={() =>handleCardClick(player)}
                   >
-                    选择
+                    {player.username}
                   </div>
               </>
             )}
@@ -437,14 +434,9 @@ function Room({ socket }) {
                 >
                   ?
                 </div>
-                <label style={{fontSize:'2vw'}}>{role.name}: {role.count}</label>
+                <label className={styles.roleCount}>{role.name}: {role.count}</label>
               </div>
             ))}
-            {tooltip.visible && (
-              <div className={styles.tooltip}>
-                {tooltip.content}
-              </div>
-            )}
           </div>
         </>
       )}
@@ -468,7 +460,7 @@ function Room({ socket }) {
         <>
           <img
             src={isVisible ? gameState.players.find(p => p.id === socket.id).role.img : '/cardback.png'}
-            style={{ width: '12vw', height: '18vw', margin: '0.5vw' }}
+            style={{ width: '9vw', height: '14vw', margin: '0.5vw' }}
             onClick={() => toggleVisibility()}
                 /> 
           <h5>当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}</h5>
@@ -522,7 +514,11 @@ function Room({ socket }) {
       
 
       {(!gameState || !gameState.started) && <button onClick={leaveRoom}>离开房间</button>}
-
+      {tooltip.visible && (
+              <div className={styles.tooltip}>
+                {tooltip.content}
+              </div>
+            )}
     </div>
   );
 }
