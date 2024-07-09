@@ -12,10 +12,6 @@ function Room({ socket }) {
   const { roomID } = useParams();
   const { showTip } = useTip();
 
-  useEffect(() => {
-    if (roomID) {
-    }
-  }, [roomID, socket]);
   const [username, setUsername] = useState(localStorage.getItem('username') || '');
   const [players, setPlayers] = useState([]);
   const [roles, setRoles] = useState([]);
@@ -150,7 +146,8 @@ function Room({ socket }) {
       setPlayers(gameState.players); // 确保玩家状态更新
       console.log('Game state restart', gameState);
     });
-  }, [socket, roomID, username, navigate]);
+  }, [socket, roomID, navigate]);
+  
 
   const handleCopy = ({ roomID }) => {
     console.log('Copying text:', roomID); // 确认传递的是字符串
@@ -344,24 +341,48 @@ function Room({ socket }) {
       <h2>房间号:<span onClick={() => handleCopy({ roomID })} style={{ cursor: 'pointer', userSelect: 'none' }}>
         {roomID}
       </span></h2>
+      {gameState && gameState.started && (
+        <>
+          <h3>本局游戏配置</h3>
+          <div className={styles.gameConfig}>
+            {renderGameConfig()}
+          </div>
+        </>
+      )}
+      {gameState && gameState.started && (
+        <>
+          <h3>底牌</h3>
+          <div className={styles.deckGrid}>
+            {gameState.leftoverCards.map((card, index) => (
+              <img
+                key={index}
+                src={gameState.subPhase === '结算环节' ? card.img : '/cardback.png'}
+                alt={`底牌 ${index + 1}`}
+                title={`底牌 ${index + 1}`}
+                style={{ width: '12vw', height: '18vw', margin: '10px' }}
+                onClick={() => handleDeckClick(index)}
+              />
+            ))}
+          </div>
+        </>
+      )}
       <h3>玩家列表</h3>
       <div className={styles.playerGrid}>
         {players.map((player, index) => (
-          <div key={index} className={styles.playerItem}>
-            <label>
-              {host === player.id && (<span style={{ color: 'red' }}>※</span>)}
-              <span style={{ color: player.id === socket.id ? 'red' : 'black', fontSize: '0.5em' }}>
-                玩家 {index + 1}:
+          <div key={index} className={styles.playerItem} onClick={player.username === null ?()=>{joinGame(index)}:()=>{removePlayer(index)}} > 
+              {host === player.id && (<span className={styles.roomHolder} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>房主</span>)}
+              <span className={styles.playerItemIndex} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>
+                 {index + 1}
               </span>
-              <div style={{ color: player.id === socket.id ? 'red' : 'black' }}>{player.username}             
-                 <div className={styles.onlineStatus} style={{ backgroundColor: player.offline ? 'grey' : 'green' }}></div>
+              {(!gameState || !gameState.started) && isHost && player.id!==socket.id &&(<span className={styles.removeItem} >
+              ×
+              </span>) }
+              { socket.id===player.id &&(<span className={styles.isMe} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>
+              我
+              </span>) }
+              <div className={styles.userName} style={{ color: player.id === socket.id ? 'red' : 'black' }}>{player.username} <span className={styles.onlineStatus} style={{ backgroundColor: player.offline ? 'grey' : 'green' }}></span>
               </div>
-              {player.username === null ? (
-                <button onClick={() => joinGame(index)}>加入</button>
-              ) : (
-                (!gameState || !gameState.started) && isHost && player.id!==socket.id && <button onClick={() => removePlayer(index)}>移除</button>
-              )}
-            </label>
+
             {gameState && gameState.started && (
               <>
                 <img
@@ -384,24 +405,7 @@ function Room({ socket }) {
           </div>
         ))}
       </div>
-
-      {gameState && gameState.started && (
-        <>
-          <h3>底牌</h3>
-          <div className={styles.deckGrid}>
-            {gameState.leftoverCards.map((card, index) => (
-              <img
-                key={index}
-                src={gameState.subPhase === '结算环节' ? card.img : '/cardback.png'}
-                alt={`底牌 ${index + 1}`}
-                title={`底牌 ${index + 1}`}
-                style={{ width: '80px', height: '120px', margin: '10px' }}
-                onClick={() => handleDeckClick(index)}
-              />
-            ))}
-          </div>
-        </>
-      )}
+      
 
       {(!gameState || !gameState.started) && (
         <>
@@ -417,7 +421,7 @@ function Room({ socket }) {
                 >
                   ?
                 </div>
-                <label>{role.name}: {role.count}</label>
+                <label style={{fontSize:'2vw'}}>{role.name}: {role.count}</label>
               </div>
             ))}
             {tooltip.visible && (
@@ -493,14 +497,7 @@ function Room({ socket }) {
         </>
       )}
 
-      {gameState && gameState.started && (
-        <>
-          <h3>本局游戏配置</h3>
-          <div className={styles.gameConfig}>
-            {renderGameConfig()}
-          </div>
-        </>
-      )}
+      
 
       {(!gameState || !gameState.started) && <button onClick={leaveRoom}>离开房间</button>}
 

@@ -3,15 +3,19 @@ html, body {
   padding: 0;
   height: 100%;
   overflow: auto;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+
 }
 
 .container {
-  max-width: 1200px;
+  /* max-width: 1200px; */
+  width: 100%;
   margin: 0 auto;
-  padding: 20px;
+  /* padding: 20px; */
   font-family: Arial, sans-serif;
   color: #333;
   overflow: auto;
+  overflow-x: hidden; /* Ensure the container does not allow horizontal scrolling */
 }
 
 .message {
@@ -24,36 +28,61 @@ html, body {
 
 .playerGrid, .roleGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1vw;
+  justify-items: center;
+  justify-content: center;
+      grid-auto-columns: 1fr;
+      grid-auto-rows: 1fr;
+}
+.roleGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1vw;
+  justify-content: center;
 }
 
 .playerItem {
   text-align: center;
-  padding: 10px;
+  /* padding: 1vw;
   border: 1px solid #ddd;
   border-radius: 5px;
   background-color: #fff;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1); */
+  border-radius: 50%;
+  background: #ebecef;
+  box-shadow:  3px 3px 3px #c8c9cb, -3px -3px 3px #ffffff;
+  width: 12vw;
+  height: 12vw;
+  position: relative;
+  justify-content: center;
+
 }
 .roleItem {
   text-align: center;
-  padding: 10px;
+  padding: 1vw;
   border: 1px solid #ddd;
   border-radius: 5px;
   background-color: #fff;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1);
   position: relative;
 }
-.playerItem img, .roleItem img {
-  width: 100px;
-  height: 150px;
-  margin-bottom: 10px;
+.playerItem img {
+  width: 14vw;
+  width: 14vw;
+  margin-bottom: 1vw;
   border-radius: 5px;
   cursor: pointer;
   transition: transform 0.3s;
 }
-
+.roleItem img {
+  width: 14vw;
+  height: 21vw;
+  /* margin-bottom: 1vw; */
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
 .playerItem img:hover, .deckGrid img:hover, .roleItem img:hover {
   /* transform: scale(1.1); */
 }
@@ -61,7 +90,7 @@ html, body {
 .playerItem button, .roleItem button {
   display: block;
   width: 100%;
-  padding: 10px;
+  padding: 1vw;
   background-color: #ff4d4d;
   color: #fff;
   border: none;
@@ -77,15 +106,15 @@ html, body {
 .deckGrid {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 1vw;
   margin-bottom: 20px;
 }
 
 .deckGrid img {
-  width: 100px;
-  height: 150px;
+  width: 18vw;
+  height: 27vw;
   border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1);
 }
 
 h2, h3 {
@@ -96,15 +125,15 @@ h2, h3 {
 .currentRole img {
   display: block;
   margin: 0 auto;
-  width: 100px;
-  height: 150px;
+  width: 14vw;
+  height: 21vw;
   border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1);
 }
 
 .currentPhase, .logs, .voteResults, .gameConfig {
   margin-bottom: 20px;
-  padding: 10px;
+  padding: 1vw;
   background-color: #f9f9f9;
   border: 1px solid #ddd;
   border-radius: 5px;
@@ -124,7 +153,7 @@ h2, h3 {
   background-color: #fff;
   border: 1px solid #ddd;
   margin-bottom: 5px;
-  padding: 10px;
+  padding: 1vw;
   border-radius: 5px;
 }
 .infoIcon {
@@ -148,40 +177,98 @@ h2, h3 {
   transform: translate(-50%, -50%);
   background: rgba(0, 0, 0, 0.8);
   color: white;
-  padding: 10px 20px;
+  padding: 1vw 20px;
   border-radius: 5px;
   white-space: nowrap;
   z-index: 1000;
 }
 .onlineStatus{
-  width: 10px;
-  height: 10px;
+  width: 1vw;
+  height: 1vw;
   border-radius: 50%;
   display: inline-block;
 }
+.roomHolder{
+  position: absolute;
+  top: 5%;
+  left: 5%;
+  width: 6vw;
+  height: 3vw;
+  border-radius: 25%;
+  color: white;
+  text-align: center;
+  font-size: 2vw;
+  line-height: 3vw;
+
+}
+.userName{
+  line-height: 12vw;
+  font-size: 1vw;
+  justify-content: center;
+  text-align: center;
+}
+.playerItemIndex{
+  position: absolute;
+  top: 75%;
+  left: 75%;
+  width: 3vw;
+  height: 3vw;
+  border-radius: 50%;
+  text-align: center;
+  font-size: 2vw;
+  line-height: 3vw;
+  color:white
+}
+.removeItem{
+  position: absolute;
+  top: 5%;
+  left: 75%;
+  width: 3vw;
+  height: 3vw;
+  border-radius: 50%;
+  text-align: center;
+  font-size: 3vw;
+  line-height: 3vw;
+  color:black
+}
+.isMe{
+  position: absolute;
+  top: 75%;
+  left: 5%;
+  width: 3vw;
+  height: 3vw;
+  border-radius: 50%;
+  text-align: center;
+  font-size: 1.7vw;
+  line-height: 3vw;
+  color:white
+}
+.userName{
+  font-size: 2vw;
+
+}
 /* 媒体查询 */
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
   .container {
-    padding: 10px;
+    padding: 1vw;
   }
 
   .playerGrid, .roleGrid {
-    grid-template-columns: repeat(3, 1fr);
   }
 
-  .playerItem img, .roleItem img {
-    width: 80px;
-    height: 120px;
+  .playerItem img {
+    width: 12vw;
+    height: 12vw;
   }
 
   .deckGrid img {
-    width: 80px;
-    height: 120px;
+    width: 18vw;
+    height: 27vw;
   }
 
-  .currentRole img {
-    width: 80px;
-    height: 120px;
+  .currentRole img, .roleItem img {
+    width: 14vw;
+    height: 21vw;
   }
 
   .playerItem button, .roleItem button {
@@ -189,4 +276,4 @@ h2, h3 {
   }
   
 }
-
+ */
