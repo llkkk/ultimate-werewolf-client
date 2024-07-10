@@ -76,3 +76,6 @@ jspm_packages
 
 # react-native
 .expo
+
+# vite
+.vite/
