@@ -1,10 +1,10 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
   overflow: auto;
   overflow-x: hidden; /* Prevent horizontal scrolling */
-
 }
 
 .container {
@@ -26,7 +26,8 @@ html, body {
   border-radius: 5px;
 }
 
-.playerGrid, .roleGrid {
+.playerGrid,
+.roleGrid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 1vw;
@@ -41,7 +42,7 @@ html, body {
   gap: 1vw;
   justify-content: center;
 }
-.gameRole{
+.gameRole {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 1vw;
@@ -50,17 +51,19 @@ html, body {
   grid-auto-columns: 1fr;
   grid-auto-rows: 1fr;
 }
-.gameRoleItem{
+.gameRoleItem {
   text-align: center;
   background: #ffe6e6;
-  box-shadow:  3px 3px 3px #c8c9cb, -3px -3px 3px #ffffff;
+  box-shadow:
+    3px 3px 3px #c8c9cb,
+    -3px -3px 3px #ffffff;
   width: 9vw;
   height: 14vw;
   position: relative;
   justify-content: center;
   border: 1px solid black;
 }
-h5{
+h5 {
   /* margin-top:1vw; */
 }
 .gameRoleItem img {
@@ -72,7 +75,7 @@ h5{
   transition: transform 0.3s;
 }
 
-.gameRoleItem div{
+.gameRoleItem div {
   /* margin-bottom:1vw ; */
 }
 .playerItem {
@@ -84,12 +87,13 @@ h5{
   box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1); */
   border-radius: 50%;
   background: #ebecef;
-  box-shadow:  3px 3px 3px #c8c9cb, -3px -3px 3px #ffffff;
+  box-shadow:
+    3px 3px 3px #c8c9cb,
+    -3px -3px 3px #ffffff;
   width: 12vw;
   height: 12vw;
   position: relative;
   justify-content: center;
-
 }
 .roleItem {
   text-align: center;
@@ -116,11 +120,14 @@ h5{
   cursor: pointer;
   transition: transform 0.3s;
 }
-.playerItem img:hover, .deckGrid img:hover, .roleItem img:hover {
+.playerItem img:hover,
+.deckGrid img:hover,
+.roleItem img:hover {
   /* transform: scale(1.1); */
 }
 
-.playerItem button, .roleItem button {
+.playerItem button,
+.roleItem button {
   display: block;
   width: 100%;
   padding: 1vw;
@@ -132,7 +139,8 @@ h5{
   transition: background-color 0.3s;
 }
 
-.playerItem button:hover, .roleItem button:hover {
+.playerItem button:hover,
+.roleItem button:hover {
   background-color: #ff1a1a;
 }
 
@@ -150,7 +158,7 @@ h5{
   border-radius: 5px;
   box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1);
 }
-.deckGridName{
+.deckGridName {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -161,7 +169,8 @@ h5{
   writing-mode: vertical-rl;
   z-index: 10;
 }
-h2, h3 {
+h2,
+h3 {
   text-align: center;
   margin-bottom: 20px;
 }
@@ -175,7 +184,10 @@ h2, h3 {
   box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1);
 }
 
-.currentPhase, .logs, .voteResults, .gameConfig {
+.currentPhase,
+.logs,
+.voteResults,
+.gameConfig {
   margin-bottom: 20px;
   padding: 1vw;
   background-color: #f9f9f9;
@@ -188,19 +200,21 @@ h2, h3 {
   font-weight: bold;
 }
 
-.logs ul, .voteResults ul {
+.logs ul,
+.voteResults ul {
   list-style: none;
   padding: 0;
 }
 
-.logs ul li, .voteResults ul li {
+.logs ul li,
+.voteResults ul li {
   background-color: #fff;
   border: 1px solid #ddd;
   margin-bottom: 5px;
   padding: 1vw;
   border-radius: 5px;
 }
-.gameInfoIcon{
+.gameInfoIcon {
   position: absolute;
   top: 0;
   right: 0;
@@ -211,7 +225,7 @@ h2, h3 {
   width: 3vw;
   height: 3vw;
   background-color: #ff4d4d;
-  color:white;
+  color: white;
   border-radius: 50%;
 }
 .infoIcon {
@@ -225,7 +239,7 @@ h2, h3 {
   width: 3vw;
   height: 3vw;
   background-color: #ff4d4d;
-  color:white;
+  color: white;
   border-radius: 50%;
 }
 
@@ -241,7 +255,7 @@ h2, h3 {
   white-space: nowrap;
   z-index: 1000;
 }
-.onlineStatus{
+.onlineStatus {
   position: absolute;
   top: 75%;
   left: 75%;
@@ -251,9 +265,9 @@ h2, h3 {
   text-align: center;
   font-size: 2vw;
   line-height: 3vw;
-  color:white
+  color: white;
 }
-.roomHolder{
+.roomHolder {
   position: absolute;
   top: 2%;
   left: 2%;
@@ -264,15 +278,14 @@ h2, h3 {
   text-align: center;
   font-size: 2vw;
   line-height: 3vw;
-
 }
-.userName{
+.userName {
   line-height: 12vw;
   font-size: 1vw;
   justify-content: center;
   text-align: center;
 }
-.playerItemIndex{
+.playerItemIndex {
   position: absolute;
   top: 75%;
   left: 5%;
@@ -282,11 +295,11 @@ h2, h3 {
   text-align: center;
   font-size: 1.7vw;
   line-height: 3vw;
-  color:white;
+  color: white;
   background-color: black;
 }
-.playerItemBtn{
-   height: 4vw;
+.playerItemBtn {
+  height: 4vw;
   width: 12vw;
   margin-top: 1vw;
   border-radius: 15%;
@@ -294,12 +307,14 @@ h2, h3 {
   line-height: 4vw;
   cursor: pointer;
   background: #ebecef;
-  box-shadow:  3px 3px 3px #c8c9cb, -3px -3px 3px #ffffff;
-  color:black;
+  box-shadow:
+    3px 3px 3px #c8c9cb,
+    -3px -3px 3px #ffffff;
+  color: black;
   text-align: center;
   justify-content: center;
 }
-.removeItem{
+.removeItem {
   position: absolute;
   top: 5%;
   left: 75%;
@@ -309,9 +324,9 @@ h2, h3 {
   text-align: center;
   font-size: 3vw;
   line-height: 3vw;
-  color:black
+  color: black;
 }
-.isMe{
+.isMe {
   position: absolute;
   top: 75%;
   left: 5%;
@@ -321,17 +336,16 @@ h2, h3 {
   text-align: center;
   font-size: 1.7vw;
   line-height: 3vw;
-  color:white
+  color: white;
 }
-.userName{
-  font-size: 2vw;
-
-}
-.gameInfoName{
+.userName {
   font-size: 2vw;
 }
-.roleCount{
-  font-size:2vw;
+.gameInfoName {
+  font-size: 2vw;
+}
+.roleCount {
+  font-size: 2vw;
 }
 /* 媒体查询 */
 @media screen and (min-width: 768px) {
@@ -339,7 +353,8 @@ h2, h3 {
     padding: 1vw;
   }
 
-  .playerGrid, .roleGrid {
+  .playerGrid,
+  .roleGrid {
     display: grid;
     grid-template-columns: repeat(10, 1fr);
     gap: 1vw;
@@ -357,12 +372,13 @@ h2, h3 {
     box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1); */
     border-radius: 50%;
     background: #ffe6e6;
-    box-shadow:  3px 3px 3px #c8c9cb, -3px -3px 3px #ffffff;
+    box-shadow:
+      3px 3px 3px #c8c9cb,
+      -3px -3px 3px #ffffff;
     width: 60px;
     height: 60px;
     position: relative;
     justify-content: center;
-  
   }
   .playerItem img {
     width: 60px;
@@ -373,7 +389,7 @@ h2, h3 {
     width: 60px;
     height: 90px;
   }
-  .deckGridName{
+  .deckGridName {
     position: absolute;
     left: 3px;
     top: 5px;
@@ -383,15 +399,18 @@ h2, h3 {
     width: 54px;
     writing-mode: vertical-rl;
   }
-  .currentRole img, .roleItem img {
+  .currentRole img,
+  .roleItem img {
     width: 60px;
     height: 90px;
   }
 
-  .playerItem button, .roleItem button {
+  .playerItem button,
+  .roleItem button {
     padding: 5px;
   }
-  .infoIcon,.gameInfoIcon {
+  .infoIcon,
+  .gameInfoIcon {
     position: absolute;
     top: 0;
     right: 0;
@@ -402,10 +421,10 @@ h2, h3 {
     width: 13px;
     height: 13px;
     background-color: #ff4d4d;
-    color:white;
+    color: white;
     border-radius: 50%;
   }
-  .onlineStatus{
+  .onlineStatus {
     position: absolute;
     top: 75%;
     left: 75%;
@@ -415,9 +434,9 @@ h2, h3 {
     text-align: center;
     font-size: 8px;
     line-height: 10px;
-    color:white
+    color: white;
   }
-  .roomHolder{
+  .roomHolder {
     position: absolute;
     top: 2%;
     left: 2%;
@@ -428,15 +447,14 @@ h2, h3 {
     text-align: center;
     font-size: 8px;
     line-height: 10px;
-  
   }
-  .userName{
+  .userName {
     line-height: 30px;
     font-size: 20px;
     justify-content: center;
     text-align: center;
   }
-  .playerItemIndex{
+  .playerItemIndex {
     position: absolute;
     top: 75%;
     left: 5%;
@@ -446,11 +464,11 @@ h2, h3 {
     text-align: center;
     font-size: 8px;
     line-height: 10px;
-    color:white;
+    color: white;
     background-color: black;
   }
-  .playerItemBtn{
-     height: 30px;
+  .playerItemBtn {
+    height: 30px;
     width: 80px;
     margin-top: 1vw;
     border-radius: 15%;
@@ -458,12 +476,14 @@ h2, h3 {
     line-height: 30px;
     cursor: pointer;
     background: #ffe6e6;
-    box-shadow:  3px 3px 3px #c8c9cb, -3px -3px 3px #ffffff;
-    color:black;
+    box-shadow:
+      3px 3px 3px #c8c9cb,
+      -3px -3px 3px #ffffff;
+    color: black;
     text-align: center;
     justify-content: center;
   }
-  .removeItem{
+  .removeItem {
     position: absolute;
     top: 5%;
     left: 75%;
@@ -473,9 +493,9 @@ h2, h3 {
     text-align: center;
     font-size: 8px;
     line-height: 10px;
-    color:black
+    color: black;
   }
-  .isMe{
+  .isMe {
     position: absolute;
     top: 75%;
     left: 5%;
@@ -485,13 +505,12 @@ h2, h3 {
     text-align: center;
     font-size: 8px;
     line-height: 10px;
-    color:white
+    color: white;
   }
-  .gameInfoName{
+  .gameInfoName {
     font-size: 8px;
   }
-  .roleCount{
-    font-size:8px;
+  .roleCount {
+    font-size: 8px;
   }
 }
- 
