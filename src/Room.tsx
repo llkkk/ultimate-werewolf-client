@@ -361,7 +361,7 @@ function Game({ socket }: GameProps) {
             >
               ?
             </div>
-            <div  className={styles.gameInfoName}>{role.name}</div>
+            <div  className={styles.gameInfoName}>{role.name}:{role.count}</div>
           </div>
     ));
   };
