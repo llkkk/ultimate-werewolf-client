@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { v4 as uuidv4 } from 'uuid';
-import saveRoomToLocalStorage, { removeRecentRoom } from './utils.tsx';
-import { Room } from './types/room.ts';
-import { Role } from './types/role.ts';
-import { Player } from './types/player.ts';
-import { useTip } from './globalTip';
 import { Socket } from 'socket.io-client';
+import { v4 as uuidv4 } from 'uuid';
+import saveRoomToLocalStorage, { removeRecentRoom } from './utils';
+import { Room } from './types/room';
+import { Role } from './types/role';
+import { Player } from './types/player';
+import { useTip } from './globalTip';
 
 interface HomeProps {
   socket: Socket;

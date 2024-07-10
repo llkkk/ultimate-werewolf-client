@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Socket } from 'socket.io-client';
 import styles from './App.module.css'; // 确保导入了 CSS Modules 文件
 
-import saveRoomToLocalStorage from './utils.js';
-import { Role } from './types/role.js';
-import { Player } from './types/player.js';
-import { Response } from './types/response.js';
-import { GameState } from './types/gameState.js';
-import { Log } from './types/log.js';
-import { useTip } from './globalTip.js';
-import { Socket } from 'socket.io-client';
-import { Ability } from './types/ability.js';
+import saveRoomToLocalStorage from './utils';
+import { Role } from './types/role';
+import { Player } from './types/player';
+import { Response } from './types/response';
+import { GameState } from './types/gameState';
+import { Log } from './types/log';
+import { useTip } from './globalTip';
+import { Ability } from './types/ability';
 
 interface GameProps {
   socket: Socket;
