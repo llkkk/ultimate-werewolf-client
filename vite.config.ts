@@ -4,9 +4,8 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      uuid: 'uuid/dist/umd/uuid.js',
-    },
+  server: {
+    host: '0.0.0.0',
+    port: 9000, // 可以根据需要更改端口
   },
 });

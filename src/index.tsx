@@ -4,6 +4,7 @@ import { HashRouter as Router } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import App from './App.tsx';
 import './index.css';
+import './App.css';
 
 // 连接到 Socket.IO 服务器 http://117.72.8.112:3000/  'http://192.168.50.44:3000'
 const socket: Socket = io('117.72.8.112:3000', {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Home from './Home.tsx';
-import Room from './Room.js';
+import Room from './Room.tsx';
 import { TipProvider } from './globalTip.tsx';
 import { Socket } from 'socket.io-client';
 

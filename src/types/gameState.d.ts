@@ -10,7 +10,7 @@ export interface GameState {
   majorPhase: string;
   subPhase: string;
   started: boolean;
-  leftoverCards: object;
+  leftoverCards: Role[];
   discussionInfo: Discussion;
   voteResults: Vote[];
   winner: string;

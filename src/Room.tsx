@@ -3,13 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import styles from './App.module.css'; // 确保导入了 CSS Modules 文件
 
 import saveRoomToLocalStorage from './utils.js';
-import { Role } from './types/role.ts';
-import { Player } from './types/player.ts';
-import { Response } from './types/response.ts';
-import { GameState } from './types/gameState.ts';
-import { Log } from './types/log.ts';
+import { Role } from './types/role.js';
+import { Player } from './types/player.js';
+import { Response } from './types/response.js';
+import { GameState } from './types/gameState.js';
+import { Log } from './types/log.js';
 import { useTip } from './globalTip.js';
 import { Socket } from 'socket.io-client';
+import { Ability } from './types/ability.js';
 
 interface GameProps {
   socket: Socket;
@@ -150,7 +151,6 @@ function Game({ socket }: GameProps) {
     });
 
     socket.on('restartGame', (gameState) => {
-      console.log('Game state restart11111', gameState);
       setGameState(null);
       setRoles(gameState.preRoles);
       setPlayers(gameState.players); // 确保玩家状态更新
@@ -214,12 +214,6 @@ function Game({ socket }: GameProps) {
     setRoles(updatedRoles);
     socket.emit('updateRoles', { room: roomID, roles: updatedRoles });
   };
-  // const handleRoleChange = (index: number, delta: number) => {
-  //   if (!isHost) return;
-  //   const updatedRoles = roles.map((role, i) => i === index ? { ...role, count: role.count + delta } : role);
-  //   setRoles(updatedRoles);
-  //   socket.emit('updateRoles', { room: roomID, roles: updatedRoles });
-  // };
 
   const joinGame = (index: number) => {
     if (players[index] && players[index].username) return;
@@ -273,12 +267,16 @@ function Game({ socket }: GameProps) {
     socket.emit('vote', { room: roomID, targetId });
   };
 
-  const canPerformAction = (ability: object) => {
-    return ability !== null;
-    // TODO: abilities 对象声明和流程修改
-    // const currentPlayer = gameState?.players.find(p => p.id === socket.id);
-    // return currentPlayer && currentPlayer.initialRole && currentPlayer.initialRole.name === gameState?.subPhase &&
-    //   currentPlayer.initialRole.abilities.some(a => a.name === ability.name && a.max > 0);
+  const canPerformAction = (ability: Ability) => {
+    const currentPlayer = gameState?.players.find((p) => p.id === socket.id);
+    return (
+      currentPlayer &&
+      currentPlayer.initialRole &&
+      currentPlayer.initialRole.name === gameState?.subPhase &&
+      currentPlayer.initialRole.abilities.some(
+        (a) => a.name === ability.name && a.max > 0,
+      )
+    );
   };
 
   const handleCardClick = (player: Player) => {
@@ -322,28 +320,28 @@ function Game({ socket }: GameProps) {
     }
   };
 
-  // const handleDeckClick = (index: string) => {
-  //   if (canPerformAction(abilities.seerViewDeck)) {
-  //     nightAction(abilities.seerViewDeck.name, { target1: { type: 'deck', id: index } });
-  //   } else if (canPerformAction(abilities.wolfViewDeck)) {
-  //     nightAction(abilities.wolfViewDeck.name, { target1: { type: 'deck', id: index } });
-  //   } else if (canPerformAction(abilities.swapSelfHandDeck)) {
-  //     nightAction(abilities.swapSelfHandDeck.name, { target1: { type: 'player', id: socket.id }, target2: { type: 'deck', id: index } });
-  //   } else if (canPerformAction(abilities.viewAndSteal)) {
-  //     const currentPlayer = gameState?.players.find(p => p.id === socket.id);
-  //     nightAction(abilities.viewAndSteal.name, { target1: { type: 'deck', id: index }, target2: { type: 'player', id: currentPlayer?.id } });
-  //   }
-  // };
-
-  // const getRoleName = () => {
-  //   const currentPlayer = gameState.players.find(p => p.id === socket.id);
-  //   return currentPlayer && currentPlayer.initialRole ? currentPlayer.initialRole.name : '未知';
-  // };
-
-  // const getRoleImage = () => {
-  //   const currentPlayer = gameState.players.find(p => p.id === socket.id);
-  //   return currentPlayer && currentPlayer.initialRole ? currentPlayer.initialRole.img : '/cardback.png';
-  // };
+  const handleDeckClick = (index: number) => {
+    if (canPerformAction(abilities.seerViewDeck)) {
+      nightAction(abilities.seerViewDeck.name, {
+        target1: { type: 'deck', id: index },
+      });
+    } else if (canPerformAction(abilities.wolfViewDeck)) {
+      nightAction(abilities.wolfViewDeck.name, {
+        target1: { type: 'deck', id: index },
+      });
+    } else if (canPerformAction(abilities.swapSelfHandDeck)) {
+      nightAction(abilities.swapSelfHandDeck.name, {
+        target1: { type: 'player', id: socket.id },
+        target2: { type: 'deck', id: index },
+      });
+    } else if (canPerformAction(abilities.viewAndSteal)) {
+      const currentPlayer = gameState?.players.find((p) => p.id === socket.id);
+      nightAction(abilities.viewAndSteal.name, {
+        target1: { type: 'deck', id: index },
+        target2: { type: 'player', id: currentPlayer?.id },
+      });
+    }
+  };
 
   const getLogMessage = (log: string, id: string | undefined) => {
     const currentPlayer = gameState?.players.find((p) => p.id === id);
@@ -389,17 +387,18 @@ function Game({ socket }: GameProps) {
         <>
           <h5>底牌</h5>
           <div className={styles.deckGrid}>
-            // TODO: card 对象声明
-            {/* {gameState.leftoverCards.map((card, index) => (
+            {gameState.leftoverCards.map((role, index) => (
               <img
                 key={index}
-                src={gameState.subPhase === '结算环节' ? card.img : '/cardback.png'}
+                src={
+                  gameState.subPhase === '结算环节' ? role.img : '/cardback.png'
+                }
                 alt={`底牌 ${index + 1}`}
                 title={`底牌 ${index + 1}`}
                 style={{ width: '12vw', height: '18vw', margin: '0.5vw' }}
                 onClick={() => handleDeckClick(index)}
               />
-            ))} */}
+            ))}
           </div>
         </>
       )}
@@ -412,11 +411,11 @@ function Game({ socket }: GameProps) {
               onClick={
                 player.username === null
                   ? () => {
-                    joinGame(index);
-                  }
+                      joinGame(index);
+                    }
                   : () => {
-                    removePlayer(index);
-                  }
+                      removePlayer(index);
+                    }
               }
             >
               {host === player.id && (
@@ -508,7 +507,7 @@ function Game({ socket }: GameProps) {
               style={{
                 color:
                   roles.reduce((sum, role) => sum + role.count, 0) >
-                    players.length + 3
+                  players.length + 3
                     ? 'red'
                     : 'black',
               }}
@@ -584,23 +583,23 @@ function Game({ socket }: GameProps) {
             <ul>
               {gameState.subPhase !== '结算环节'
                 ? socket.id &&
-                logs[socket.id] &&
-                Object.keys(logs[socket.id]).map((key) =>
-                  logs[socket.id || ''][key].map((log) => (
-                    <li key={`${key}-${log.index}`}>
-                      {getLogMessage(log.log, socket.id)}
-                    </li>
-                  )),
-                )
-                : Object.keys(logs).map(
-                  (socketId) =>
-                    logs[socketId]['2'] &&
-                    logs[socketId]['2']?.map((log: Log) => (
-                      <li key={`${socketId}-1-${log.index}`}>
-                        {getLogMessage(log.log, socketId)}
+                  logs[socket.id] &&
+                  Object.keys(logs[socket.id]).map((key) =>
+                    logs[socket.id || ''][key].map((log) => (
+                      <li key={`${key}-${log.index}`}>
+                        {getLogMessage(log.log, socket.id)}
                       </li>
                     )),
-                )}
+                  )
+                : Object.keys(logs).map(
+                    (socketId) =>
+                      logs[socketId]['2'] &&
+                      logs[socketId]['2']?.map((log: Log) => (
+                        <li key={`${socketId}-1-${log.index}`}>
+                          {getLogMessage(log.log, socketId)}
+                        </li>
+                      )),
+                  )}
             </ul>
           </div>
 

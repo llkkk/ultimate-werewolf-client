@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import saveRoomToLocalStorage, { removeRecentRoom } from './utils.tsx';
 import { Room } from './types/room.ts';
 import { Role } from './types/role.ts';
@@ -32,9 +32,8 @@ const Home: React.FC<HomeProps> = ({ socket }) => {
       showTip('请输入用户名');
       return;
     }
-    const newRoomID = '12345678';
-    // TODO: uuid依赖问题
-    // const newRoomID = uuidv4().slice(0, 8); // 生成唯一的房间ID 截取前10个字符
+
+    const newRoomID = uuidv4().slice(0, 8); // 生成唯一的房间ID 截取前10个字符
     socket.emit(
       'createRoom',
       { id: newRoomID, username },
