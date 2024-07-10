@@ -17,7 +17,13 @@ body {
   overflow: auto;
   overflow-x: hidden; /* Ensure the container does not allow horizontal scrolling */
 }
-
+.itemContainer{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
 .message {
   background-color: #f9f9f9;
   border: 1px solid #ddd;
@@ -26,30 +32,32 @@ body {
   border-radius: 5px;
 }
 
-.playerGrid,
-.roleGrid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 1vw;
-  justify-items: center;
+.playerGrid {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   justify-content: center;
-  grid-auto-columns: 1fr;
-  grid-auto-rows: 1fr;
+  text-align: center;
+  gap: 1vw;
+  flex-wrap: wrap; /* 允许子元素换行 */
 }
 .roleGrid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 1vw;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   justify-content: center;
+  text-align: center;
+  gap: 1vw;
+  flex-wrap: wrap; /* 允许子元素换行 */
 }
 .gameRole {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 1vw;
-  justify-items: center;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   justify-content: center;
-  grid-auto-columns: 1fr;
-  grid-auto-rows: 1fr;
+  text-align: center;
+  gap: 1vw;
+  flex-wrap: wrap; /* 允许子元素换行 */
 }
 .gameRoleItem {
   text-align: center;
@@ -62,6 +70,7 @@ body {
   position: relative;
   justify-content: center;
   border: 1px solid black;
+  border-radius: 5%;
 }
 h5 {
   /* margin-top:1vw; */
@@ -69,7 +78,8 @@ h5 {
 .gameRoleItem img {
   margin: 1vw 1vw 0 1vw;
   width: 7vw;
-  height: 9vw;
+  height: 7vw;
+  max-height: 7vw;
   border-radius: 5px;
   cursor: pointer;
   transition: transform 0.3s;
@@ -113,9 +123,10 @@ h5 {
   transition: transform 0.3s;
 }
 .roleItem img {
-  width: 14vw;
-  height: 21vw;
+  width: 12vw;
+  height: 12vw;
   /* margin-bottom: 1vw; */
+  max-width: 12vw;
   border-radius: 5px;
   cursor: pointer;
   transition: transform 0.3s;
@@ -338,14 +349,29 @@ h3 {
   line-height: 3vw;
   color: white;
 }
-.userName {
-  font-size: 2vw;
-}
+
 .gameInfoName {
   font-size: 2vw;
 }
 .roleCount {
   font-size: 2vw;
+}
+.ownCard{
+  width: 12vw;
+  height: 18vw; 
+  margin:2vw auto;
+  border: 1px solid black;
+  text-align: center;
+  border-radius: 5%;
+}
+.ownCardImg{
+  width: 12vw;
+  height: 12vw; 
+}
+.ownCardback{
+  width: 12vw;
+  height: 18vw; 
+  z-index: 10;
 }
 /* 媒体查询 */
 @media screen and (min-width: 768px) {
@@ -353,15 +379,23 @@ h3 {
     padding: 1vw;
   }
 
-  .playerGrid,
+  .playerGrid{
+    display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex-wrap: wrap; /* 允许子元素换行 */
+  gap: 1vw;
+  }
   .roleGrid {
-    display: grid;
-    grid-template-columns: repeat(10, 1fr);
-    gap: 1vw;
-    justify-items: center;
-    justify-content: center;
-    grid-auto-columns: 1fr;
-    grid-auto-rows: 1fr;
+    display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1vw;
+  flex-wrap: wrap; /* 允许子元素换行 */
   }
   .playerItem {
     text-align: center;
@@ -387,7 +421,15 @@ h3 {
 
   .deckGrid img {
     width: 60px;
-    height: 90px;
+    height:
+     90px;
+  }
+  .deckGrid {
+    display: flex;
+    justify-content: center;
+    gap: 1vw;
+    margin-bottom: 20px;
+    position: relative;
   }
   .deckGridName {
     position: absolute;
@@ -400,11 +442,23 @@ h3 {
     writing-mode: vertical-rl;
   }
   .currentRole img,
-  .roleItem img {
+  .roleItem img,.gameRoleItem img{
     width: 60px;
-    height: 90px;
+    height: 60px;
+    max-height: 60px;
+    margin: 1px;
   }
-
+  .currentRole,.roleItem,
+  .gameRoleItem {
+    text-align: center;
+    background: #ffe6e6;
+    width: 60px;
+    height: 80px;
+    position: relative;
+    justify-content: center;
+    border: 1px solid black;
+    border-radius: 5%;
+  }
   .playerItem button,
   .roleItem button {
     padding: 5px;
@@ -449,8 +503,8 @@ h3 {
     line-height: 10px;
   }
   .userName {
-    line-height: 30px;
-    font-size: 20px;
+    line-height: 60px;
+    font-size: 10px;
     justify-content: center;
     text-align: center;
   }
@@ -469,10 +523,10 @@ h3 {
   }
   .playerItemBtn {
     height: 30px;
-    width: 80px;
+    width: 60px;
     margin-top: 1vw;
     border-radius: 15%;
-    font-size: 20px;
+    font-size: 10px;
     line-height: 30px;
     cursor: pointer;
     background: #ffe6e6;
@@ -512,5 +566,22 @@ h3 {
   }
   .roleCount {
     font-size: 8px;
+  }
+  .ownCard{
+    width: 60px;
+    height: 80px;
+    margin:10px auto;
+    border: 1px solid black;
+    text-align: center;
+    border-radius: 5%;
+  }
+  .ownCardImg{
+    width: 60px;
+    height: 60px; 
+  }
+  .ownCardback{
+    width: 60px;
+    height: 80px;
+    z-index: 10;
   }
 }

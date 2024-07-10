@@ -77,7 +77,13 @@ const Home: React.FC<HomeProps> = ({ socket }) => {
       return `${days}天前`;
     }
   };
-
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // 限制最多输入5个汉字
+    if (value.length <= 5) {
+      setUsername(value);
+    }
+  };
   const joinRoom = (joinRoomID?: string) => {
     if (joinRoomID) setRoomID(joinRoomID);
     if (roomID.trim() === '') {
@@ -123,7 +129,7 @@ const Home: React.FC<HomeProps> = ({ socket }) => {
         <input
           type='text'
           value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          onChange={handleUsernameChange}
           placeholder='输入用户名'
           style={{ flex: 2, textAlign: 'center', marginRight: '20px' }}
         />

@@ -351,14 +351,19 @@ function Game({ socket }: GameProps) {
   };
 
   const renderGameConfig = () => {
-    return roles
-      .filter((role) => role.count > 0)
-      .map((role, index) => (
-        <span key={index} style={{ marginRight: '80px' }}>
-          {role.name}：{role.count}
-          {index % 2 !== 0 ? <br /> : null}
-        </span>
-      ));
+    return roles.filter(role => role.count > 0).map((role, index) => (
+          <div key={index} className={styles.gameRoleItem} >
+            <img src={role.img} alt={role.name} title={role.name} />
+            <div
+              className={styles.gameInfoIcon}
+              onClick={(e) => handleInfoClick(e, role.description)}
+              onMouseLeave={handleInfoLeave}
+            >
+              ?
+            </div>
+            <div  className={styles.gameInfoName}>{role.name}</div>
+          </div>
+    ));
   };
 
   const resetGame = () => {
@@ -380,7 +385,7 @@ function Game({ socket }: GameProps) {
       {gameState && gameState.started && (
         <>
           <h5>本局游戏配置</h5>
-          <div className={styles.gameConfig}>{renderGameConfig()}</div>
+          <div className={styles.gameRole}>{renderGameConfig()}</div>
         </>
       )}
       {gameState && gameState.started && (
@@ -395,7 +400,6 @@ function Game({ socket }: GameProps) {
                 }
                 alt={`底牌 ${index + 1}`}
                 title={`底牌 ${index + 1}`}
-                style={{ width: '12vw', height: '18vw', margin: '0.5vw' }}
                 onClick={() => handleDeckClick(index)}
               />
             ))}
@@ -418,73 +422,26 @@ function Game({ socket }: GameProps) {
                     }
               }
             >
-              {host === player.id && (
-                <span
-                  className={styles.roomHolder}
-                  style={{
-                    backgroundColor:
-                      player.id === socket.id ? 'rgb(234 88 12)' : 'black',
-                  }}
-                >
-                  房主
-                </span>
-              )}
-              <span
-                className={styles.playerItemIndex}
-                style={{
-                  backgroundColor:
-                    player.id === socket.id ? 'rgb(234 88 12)' : 'black',
-                }}
-              >
+              {host === player.id && (<span className={styles.roomHolder} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>房主</span>)}
+              {(!gameState || !gameState.started) && isHost && player.id!==socket.id &&(<span className={styles.removeItem} >
+              ×
+              </span>) }
+              { socket.id!==player.id &&(<span className={styles.playerItemIndex} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>
                 {index + 1}
-              </span>
-              {(!gameState || !gameState.started) &&
-                isHost &&
-                player.id !== socket.id && (
-                  <span className={styles.removeItem}>×</span>
-                )}
-              {socket.id === player.id && (
-                <span
-                  className={styles.isMe}
-                  style={{
-                    backgroundColor:
-                      player.id === socket.id ? 'rgb(234 88 12)' : 'black',
-                  }}
-                >
-                  我
-                </span>
-              )}
-              <div
-                className={styles.userName}
-                style={{ color: player.id === socket.id ? 'red' : 'black' }}
-              >
-                {player.username}{' '}
-                <span
-                  className={styles.onlineStatus}
-                  style={{ backgroundColor: player.offline ? 'grey' : 'green' }}
-                ></span>
-              </div>
-            </div>
-            {gameState &&
-              gameState.started &&
-              gameState.subPhase &&
-              !daySubPhases.includes(gameState.subPhase) && (
-                <>
-                  {/* <img
-                  src={player.id === socket.id || gameState.subPhase === '结算环节' ? player.role.img : '/cardback.png'}
-                  alt={`玩家${index + 1}`}
-                  title={player.username}
-                  style={{ width: '60px', height: '90px', margin: '10px 0' }}
-                  onClick={() => handleCardClick(player)}
-                /> */}
-                  <div
-                    className={styles.playerItemBtn}
-                    onClick={() => handleCardClick(player)}
+              </span>) }
+              { socket.id===player.id &&(<span className={styles.isMe} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>
+              我
+              </span>) }
+              <span className={styles.onlineStatus} style={{ backgroundColor: player.offline ? 'grey' : 'green' }}></span>
+          </div>
+          {gameState && gameState.started && gameState.subPhase && !daySubPhases.includes(gameState.subPhase) && (
+              <>
+                 <div  className={styles.playerItemBtn}
                   >
-                    选择
+                    {player.username}
                   </div>
-                </>
-              )}
+              </>
+            )}
             {gameState &&
               gameState.subPhase &&
               gameState.subPhase === '投票环节' && (
@@ -498,7 +455,6 @@ function Game({ socket }: GameProps) {
           </div>
         ))}
       </div>
-
       {(!gameState || !gameState.started) && (
         <>
           <h5>
@@ -524,7 +480,6 @@ function Game({ socket }: GameProps) {
                 onClick={() => handleRoleClick(index)}
               >
                 <img src={role.img} alt={role.name} title={role.name} />
-                <br />
                 <div
                   className={styles.infoIcon}
                   onClick={(e) => handleInfoClick(e, role.description)}
@@ -532,9 +487,9 @@ function Game({ socket }: GameProps) {
                 >
                   ?
                 </div>
-                <label style={{ fontSize: '2vw' }}>
+                <div className={styles.roleCount}>
                   {role.name}: {role.count}
-                </label>
+                </div>
               </div>
             ))}
             {tooltip.visible && (
@@ -558,15 +513,21 @@ function Game({ socket }: GameProps) {
 
       {gameState && gameState.started && (
         <>
-          <img
-            src={
-              isVisible
-                ? gameState.players.find((p) => p.id === socket.id)?.role.img
-                : '/cardback.png'
-            }
-            style={{ width: '12vw', height: '18vw', margin: '0.5vw' }}
-            onClick={() => toggleVisibility()}
-          />
+          <div
+                className={styles.ownCard}
+                onClick={() => toggleVisibility()}
+                >
+             { isVisible &&    <img className={styles.ownCardImg} src={
+               gameState.players.find((p) => p.id === socket.id)?.role.img
+            } />}
+            { !isVisible && <img className={styles.ownCardback} src={
+               '/cardback.png'
+            } />}
+              <div className={styles.roleCount}>
+              {isVisible
+              ? gameState.players.find((p) => p.id === socket.id)?.role.name:''}
+                </div>
+              </div>
           <h5>当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}</h5>
           {gameState.subPhase === '讨论环节' && gameState.discussionInfo && (
             <div className={styles.currentPhase}>
