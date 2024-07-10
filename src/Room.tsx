@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect,useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 import styles from './App.module.css'; // 确保导入了 CSS Modules 文件
@@ -30,6 +30,7 @@ function Game({ socket }: GameProps) {
   const [gameState, setGameState] = useState<GameState | null>(null);
   // const [preGameState, setPreRoles] = useState([]);
 
+  
   const abilities = {
     viewHand: { name: '查看手牌', max: 1 },
     swapHand: { name: '交换手牌', max: 1 },
@@ -43,7 +44,32 @@ function Game({ socket }: GameProps) {
     votePlayer: { name: '票出该玩家则获胜', max: 1 },
   };
   const daySubPhases = ['讨论环节', '投票环节', '结算环节'];
+  const nightSubPhases = [
+    "爪牙",
+    "狼人",
+    "狼先知",
+    "守夜人",
+    "诅咒者",
+    "预言家",
+    "哨兵",
+    "强盗",
+    "女巫",
+    "捣蛋鬼",
+    "新捣蛋鬼",
+    "酒鬼",
+    "盗贼",
+    "失眠者",
+  ];
+  let [existingRoles, setExistingRoles] = useState<string[]>([]);
 
+  useEffect(() => {
+    const filteredRoles = roles.filter(role => role.count > 0);
+    const updatedExistingRoles = nightSubPhases.filter(phase =>
+      filteredRoles.some(role => role.name === phase)
+    );
+    console.log(updatedExistingRoles,1,filteredRoles);
+    setExistingRoles(updatedExistingRoles);
+  }, [roles]);
   const [isHost, setIsHost] = useState(
     localStorage.getItem('host') === socket.id,
   );
@@ -386,7 +412,17 @@ function Game({ socket }: GameProps) {
         <>
           <h5>本局游戏配置</h5>
           <div className={styles.gameRole}>{renderGameConfig()}</div>
+          <h5>行动顺序</h5>
+        <div>
+          {existingRoles.map((phase, index) => (
+            <><span key={index} style={{ color: phase === gameState.subPhase ? 'red' : 'black' }}>
+              {phase} 
+            </span><span>{index < existingRoles.length - 1 ? '→' : ''}</span></>
+  ))}
+</div>
         </>
+
+
       )}
       {gameState && gameState.started && (
         <>
