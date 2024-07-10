@@ -232,7 +232,7 @@ function Game({ socket }: GameProps) {
   };
 
   const removePlayer = (index: number) => {
-    if (!isHost) return;
+    if (isHost || socket.id==players[index].id) return;
 
     socket.emit('removePlayer', { room: roomID, index });
   };
@@ -417,9 +417,11 @@ function Game({ socket }: GameProps) {
                   ? () => {
                       joinGame(index);
                     }
-                  : () => {
-                      removePlayer(index);
-                    }
+                  : ((gameState && gameState.started)?()=>{
+                    handleCardClick(player)
+                  }:() => {
+                    removePlayer(index);
+                    })
               }
             >
               {host === player.id && (<span className={styles.roomHolder} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>房主</span>)}
