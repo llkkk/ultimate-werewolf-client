@@ -232,7 +232,7 @@ function Game({ socket }: GameProps) {
   };
 
   const removePlayer = (index: number) => {
-    if (!isHost) return;
+    if (!isHost || socket.id==players[index].id) return;
 
     socket.emit('removePlayer', { room: roomID, index });
   };
