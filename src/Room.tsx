@@ -74,7 +74,7 @@ function Game({ socket }: GameProps) {
   );
   const [host, setHost] = useState<string>(localStorage.getItem('host') || '');
   const [logs, setLogs] = useState<{
-    [socketId: string]: { [type: string]: Log[] };
+    [socketId: string]: { [type: string]: string[] };
   }>({});
   const [swapTargets, setSwapTargets] = useState<string[]>([]);
   const [isVisible, setIsVisible] = useState(true);
@@ -629,18 +629,18 @@ function Game({ socket }: GameProps) {
                 ? socket.id &&
                   logs[socket.id] &&
                   Object.keys(logs[socket.id]).map((key) =>
-                    logs[socket.id || ''][key].map((log) => (
-                      <li key={`${key}-${log.index}`}>
-                        {getLogMessage(log.log, socket.id)}
+                    logs[socket.id || ''][key].map((log,idx) => (
+                      <li key={`${key}-${idx}`}>
+                        {getLogMessage(log, socket.id)}
                       </li>
                     )),
                   )
                 : Object.keys(logs).map(
                     (socketId) =>
                       logs[socketId]['2'] &&
-                      logs[socketId]['2']?.map((log: Log) => (
-                        <li key={`${socketId}-1-${log.index}`}>
-                          {getLogMessage(log.log, socketId)}
+                      logs[socketId]['2']?.map((log: string,idx) => (
+                        <li key={`${socketId}-1-${idx}`}>
+                          {getLogMessage(log, socketId)}
                         </li>
                       )),
                   )}
