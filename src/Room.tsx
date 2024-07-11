@@ -1,4 +1,4 @@
-import { useState, useEffect,useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 import styles from './App.module.css'; // 确保导入了 CSS Modules 文件
@@ -453,9 +453,12 @@ function Game({ socket }: GameProps) {
                   ? () => {
                       joinGame(index);
                     }
-                  : () => {
+                  : ((gameState && gameState.started)?()=>{
+handleCardClick(player)
+
+                  }:() => {
                       removePlayer(index);
-                    }
+                    })
               }
             >
               {host === player.id && (<span className={styles.roomHolder} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>房主</span>)}
