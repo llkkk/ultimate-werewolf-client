@@ -8,7 +8,6 @@ import { Role } from './types/role';
 import { Player } from './types/player';
 import { Response } from './types/response';
 import { GameState } from './types/gameState';
-import { Log } from './types/log';
 import { useTip } from './globalTip';
 import { Ability } from './types/ability';
 
