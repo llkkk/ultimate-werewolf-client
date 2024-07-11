@@ -468,7 +468,7 @@ function Game({ socket }: GameProps) {
           <h5>本局游戏配置</h5>
           <div className={styles.gameRole}>{renderGameConfig()}</div>
           <h5>行动顺序</h5>
-          <div>
+          <div className={styles.moveRange}>
             {existingRoles.map((phase, index) => (
               <>
                 <span
@@ -490,18 +490,34 @@ function Game({ socket }: GameProps) {
           <h5>底牌</h5>
           <div className={styles.deckGrid}>
             {gameState.leftoverCards.map((role, index) => (
-              <img
-                key={index}
-                src={
-                  gameState.subPhase === '结算环节'
-                    ? role_resources_base_url + role.img
-                    : role_resources_base_url + '/cardback.png'
-                }
-                alt={`底牌 ${index + 1}`}
-                title={`底牌 ${index + 1}`}
-                onClick={() => handleDeckClick(index)}
-              />
+              <>
+                {gameState.subPhase !== '结算环节' && (<img
+                  key={index}
+                  src={
+                    role_resources_base_url + '/cardback.png'
+                  }
+                  alt={`底牌 ${index + 1}`}
+                  title={`底牌 ${index + 1}`}
+                  onClick={() => handleDeckClick(index)}
+                />)}
+                {gameState.subPhase === '结算环节' && (<div className={styles.deckGridItem}><img
+                  key={index}
+                  src={
+                    role_resources_base_url + role.img
+                  }
+                  alt={`底牌 ${index + 1}`}
+                  title={`底牌 ${index + 1}`}
+                  className={styles.deckGridImg}
+                  onClick={() => handleDeckClick(index)}
+                />
+                  <div className={styles.roleCount}>
+                    {role.name
+                    }
+                  </div></div>)}
+
+              </>
             ))}
+
           </div>
         </>
       )}
@@ -514,13 +530,13 @@ function Game({ socket }: GameProps) {
               onClick={
                 player.username === null
                   ? () => {
-                      joinGame(index);
-                    }
+                    joinGame(index);
+                  }
                   : gameState && gameState.started
-                  ? () => {
+                    ? () => {
                       handleCardClick(player);
                     }
-                  : () => {
+                    : () => {
                       removePlayer(index);
                     }
               }
@@ -627,7 +643,7 @@ function Game({ socket }: GameProps) {
               style={{
                 color:
                   roles.reduce((sum, role) => sum + role.count, 0) >
-                  players.length + 3
+                    players.length + 3
                     ? 'red'
                     : 'black',
               }}
@@ -667,29 +683,27 @@ function Game({ socket }: GameProps) {
         </>
       )}
 
-      <img src='https://github.com/UchihaSasuka/ultimate-werewolf-resource/blob/master/images/avatars/Aatrox.png'></img>
 
       {isHost && (
         <>
           {!gameState || !gameState.started ? (
-            <button onClick={startGame}>开始游戏</button>
+            <div className={styles.operateBtnn} onClick={startGame}>开始游戏</div>
           ) : gameState.subPhase === '结算环节' ? (
-            <button onClick={resetGame}>重新开始</button>
+            <div className={styles.operateBtnn} onClick={resetGame}>重新开始</div>
           ) : (
-            <button onClick={nextPhase}>下一阶段</button>
+            <div className={styles.operateBtnn} onClick={nextPhase}>下一阶段</div>
           )}
         </>
       )}
 
       {gameState && gameState.started && (
         <>
-          <div className={styles.ownCard} onClick={() => toggleVisibility()}>
+          <div className={styles.ownCard} >
             {isVisible && (
               <img
                 className={styles.ownCardImg}
-                src={`${role_resources_base_url}${
-                  gameState.players.find((p) => p.id === socket.id)?.role.img
-                }`}
+                src={`${role_resources_base_url}${gameState.players.find((p) => p.id === socket.id)?.role.img
+                  }`}
               />
             )}
             {!isVisible && (
@@ -704,22 +718,23 @@ function Game({ socket }: GameProps) {
                 : ''}
             </div>
           </div>
-          <h5>当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}</h5>
-          {gameState.subPhase === '讨论环节' && gameState.discussionInfo && (
-            <div className={styles.currentPhase}>
-              <div className={styles.discussionInfo}>
-                <p>
-                  从 {gameState.discussionInfo.startingPlayer.username} 开始，按{' '}
-                  {gameState.discussionInfo.direction} 顺序发言。
-                </p>
+          <div className={styles.hideCurrentRole} onClick={() => toggleVisibility()}>{isVisible ? '隐藏当前身份' : '显示当前身份'}</div>
+          <div className={`${styles.hiddenItem} ${isVisible ? styles.shown : styles.hidden}`}><h5>当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}</h5>
+            {gameState.subPhase === '讨论环节' && gameState.discussionInfo && (
+              <div className={styles.currentPhase}>
+                <div className={styles.discussionInfo}>
+                  <p>
+                    从 {gameState.discussionInfo.startingPlayer.username} 开始，按{' '}
+                    {gameState.discussionInfo.direction} 顺序发言。
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
-          <h5>游戏日志</h5>
-          <div className={styles.logs}>
-            <ul>
-              {gameState.subPhase !== '结算环节'
-                ? socket.id &&
+            )}
+            <h5>游戏日志</h5>
+            <div className={styles.logs}>
+              <ul>
+                {gameState.subPhase !== '结算环节'
+                  ? socket.id &&
                   logs[socket.id] &&
                   Object.keys(logs[socket.id]).map((key) =>
                     logs[socket.id || ''][key].map((log, idx) => (
@@ -728,7 +743,7 @@ function Game({ socket }: GameProps) {
                       </li>
                     )),
                   )
-                : Object.keys(logs).map(
+                  : Object.keys(logs).map(
                     (socketId) =>
                       logs[socketId]['2'] &&
                       logs[socketId]['2']?.map((log: string, idx) => (
@@ -737,8 +752,9 @@ function Game({ socket }: GameProps) {
                         </li>
                       )),
                   )}
-            </ul>
-          </div>
+              </ul>
+            </div></div>
+
 
           {gameState.subPhase === '结算环节' && (
             <>
@@ -770,7 +786,7 @@ function Game({ socket }: GameProps) {
       )}
 
       {(!gameState || !gameState.started) && (
-        <button onClick={leaveRoom}>离开房间</button>
+        <div className={styles.operateBtnn} onClick={leaveRoom}>离开房间</div>
       )}
     </div>
   );
