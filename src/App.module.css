@@ -60,7 +60,7 @@ body {
   gap: 1vw;
   flex-wrap: wrap; /* 允许子元素换行 */
 }
-.gameRoleItem {
+.gameRoleItem,.deckGridItem {
   text-align: center;
   background: #ffe6e6;
   box-shadow: 3px 3px 3px #c8c9cb, -3px -3px 3px #ffffff;
@@ -112,12 +112,9 @@ h5 {
   position: relative;
 }
 .playerItem img {
-  width: 14vw;
-  width: 14vw;
-  margin-bottom: 1vw;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: transform 0.3s;
+  width: 12vw;
+  height: 12vw;
+  border-radius: 50%;
 }
 .roleItem img {
   width: 12vw;
@@ -151,7 +148,68 @@ h5 {
 .roleItem button:hover {
   background-color: #ff1a1a;
 }
+.operateBtnn{
+  color: rgba(0, 0, 0, .9);
+  border-radius: 5%;
+  border-style: solid;
+  border-width: 0;
+  box-sizing: border-box;
+  padding: 10px;
+    margin: 5px 0;
+    font-size: 16px;
+  background-color: rgba(226, 232, 240, .8);
+  transition-duration: .15s;
+  transition-property: color,background-color,border-color,text-decoration-color,fill,stroke;
+  transition-timing-function: cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 3px 7px -1px rgba(0,0,0,.2),0 2px 5px -2px rgba(0,0,0,.2);
+}
 
+.hideCurrentRole{
+  color: rgba(0, 0, 0, .9);
+  border-radius: 5%;
+  border-style: solid;
+  border-width: 0;
+  box-sizing: border-box;
+  padding: 5px;
+    margin: 1px 30% ;
+    font-size: 7px;
+    width: auto;
+  background-color: rgba(226, 232, 240, .8);
+  transition-duration: .15s;
+  transition-property: color,background-color,border-color,text-decoration-color,fill,stroke;
+  transition-timing-function: cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 3px 7px -1px rgba(0,0,0,.2),0 2px 5px -2px rgba(0,0,0,.2);
+}
+
+.hiddenItem{
+  transition: opacity 0.5s ease-in-out;
+}
+/* styles.css */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes fadeOut2 {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.hiddenItem.shown {
+  animation: fadeOut2 1s ease-in-out forwards;
+  pointer-events: none; /* 防止隐藏元素的交互 */
+}
+.hiddenItem.hidden {
+  animation: fadeOut 1s ease-in-out forwards;
+  pointer-events: none; /* 防止隐藏元素的交互 */
+}
 .deckGrid {
   display: flex;
   justify-content: center;
@@ -163,6 +221,16 @@ h5 {
 .deckGrid img {
   width: 9vw;
   height: 14vw;
+  border-radius: 5px;
+  box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1);
+}
+.deckGridItem{
+  
+}
+.deckGridImg {
+  width: 9vw ;
+  height: 9vw !important;
+  max-height: 9vw;
   border-radius: 5px;
   box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1);
 }
@@ -421,13 +489,26 @@ h3 {
 .cancelButton:hover {
   background-color: #ff4d4d;
 }
+button{
+  cursor: pointer;
+  background: #ebecef  !important;
+    box-shadow: 3px 3px 3px #c8c9cb, -3px -3px 3px #ffffff !important;
+    color: #ff4d4d !important;
+    text-align: center;
+    justify-content: center;
+}
+.moveRange{
+  font-size: 3vw;
+}
 
 /* 媒体查询 */
 @media screen and (min-width: 768px) {
   .container {
     padding: 1vw;
   }
-
+  .moveRange{
+    font-size: 10px;
+  }
   .playerGrid {
     display: flex;
     flex-direction: row;
@@ -464,11 +545,16 @@ h3 {
   .playerItem img {
     width: 60px;
     height: 60px;
+    border-radius: 50%;
   }
 
   .deckGrid img {
     width: 60px;
     height: 90px;
+  }
+  .deckGridImg{
+    width: 60px;
+    width: 60px;
   }
   .deckGrid {
     display: flex;
