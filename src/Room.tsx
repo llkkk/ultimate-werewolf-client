@@ -10,6 +10,7 @@ import { Response } from './types/response';
 import { GameState } from './types/gameState';
 import { useTip } from './globalTip';
 import { Ability } from './types/ability';
+import { Avatar } from './types/avatar';
 
 interface GameProps {
   socket: Socket;
@@ -28,6 +29,23 @@ function Game({ socket }: GameProps) {
   // const [isHide, setIsHide] = useState(false);
   const [gameState, setGameState] = useState<GameState | null>(null);
   // const [preGameState, setPreRoles] = useState([]);
+
+  // 用户头像相关
+  const [avatars, setAvatars] = useState<Avatar[]>([]);
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+
+  // 角色图片基础地址
+  const role_resources_base_url =
+    'https://uchihasasuka.github.io/ultimate-werewolf-resource/images/roles';
+
+  // 获取头像图片列表地址
+  const avatar_resources_list_url =
+    'https://api.github.com/repos/UchihaSasuka/ultimate-werewolf-resource/contents/images/avatars';
+
+  // 头像图片基础地址
+  const avatar_resources_base_url =
+    'https://uchihasasuka.github.io/ultimate-werewolf-resource/images/avatars/';
 
   const abilities = {
     viewHand: { name: '查看手牌', max: 1 },
@@ -65,9 +83,24 @@ function Game({ socket }: GameProps) {
     const updatedExistingRoles = nightSubPhases.filter((phase) =>
       filteredRoles.some((role) => role.name === phase),
     );
+
+    // 初始化头像图片
+    const fetchAvatars = async () => {
+      const response = await fetch(avatar_resources_list_url);
+      const data = await response.json();
+      const avatarsData = data.map((avatar: Avatar, index: number) => ({
+        name: avatar.name,
+        sha: index,
+        img: avatar_resources_base_url + avatar.name,
+      }));
+      setAvatars(avatarsData);
+    };
+    fetchAvatars();
+
     console.log(updatedExistingRoles, 1, filteredRoles);
     setExistingRoles(updatedExistingRoles);
   }, [roles]);
+
   const [isHost, setIsHost] = useState(
     localStorage.getItem('host') === socket.id,
   );
@@ -107,6 +140,17 @@ function Game({ socket }: GameProps) {
     const randomPlayerName = `玩家${randomLetters}${randomNumbers}`;
     return randomPlayerName;
   };
+
+  // 更换用户头像
+  const handleAvatarClick = (avatar: Avatar) => {
+    if (selectedPlayer) {
+      // 假设游戏状态包含一个方法可以设置玩家头像
+      selectedPlayer.avatar = avatar;
+      setShowAvatarSelector(false);
+      setSelectedPlayer(null);
+    }
+  };
+
   useEffect(() => {
     if (!username) {
       const newUserName = generateRandomPlayerName();
@@ -256,10 +300,19 @@ function Game({ socket }: GameProps) {
   };
 
   const removePlayer = (index: number) => {
-    if (!isHost || socket.id == players[index].id) return;
+    // 先判断是否是自己 是自己统一走换头像的逻辑
+    if (socket.id == players[index].id) {
+      const player = players[index];
+      setSelectedPlayer(player);
+      setShowAvatarSelector(true);
+    } else {
+      // 如果不是房主没有移除权限
+      if (!isHost) return;
+    }
 
     socket.emit('removePlayer', { room: roomID, index });
   };
+
   const leaveRoom = () => {
     socket.emit('leaveRoom', { room: roomID, username });
     navigate('/');
@@ -440,7 +493,9 @@ function Game({ socket }: GameProps) {
               <img
                 key={index}
                 src={
-                  gameState.subPhase === '结算环节' ? role.img : '/cardback.png'
+                  gameState.subPhase === '结算环节'
+                    ? role_resources_base_url + role.img
+                    : role_resources_base_url + '/cardback.png'
                 }
                 alt={`底牌 ${index + 1}`}
                 title={`底牌 ${index + 1}`}
@@ -470,6 +525,13 @@ function Game({ socket }: GameProps) {
                     }
               }
             >
+              {player.avatar && (
+                <img
+                  className={styles.ownCardImg}
+                  src={`${player.avatar.img}`}
+                  alt='Role Image'
+                />
+              )}
               {host === player.id && (
                 <span
                   className={styles.roomHolder}
@@ -534,6 +596,29 @@ function Game({ socket }: GameProps) {
           </div>
         ))}
       </div>
+
+      {showAvatarSelector && (
+        <div className={styles.avatarPickerOverlay}>
+          <div className={styles.avatarPicker}>
+            {avatars.map((avatar) => (
+              <img
+                key={avatar.name}
+                src={avatar.img}
+                alt={avatar.name}
+                onClick={() => handleAvatarClick(avatar)}
+                className={styles.avatarImage}
+              />
+            ))}
+            <button
+              onClick={() => setShowAvatarSelector(false)}
+              className={styles.cancelButton}
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      )}
+
       {(!gameState || !gameState.started) && (
         <>
           <h5>
@@ -558,7 +643,11 @@ function Game({ socket }: GameProps) {
                 className={styles.roleItem}
                 onClick={() => handleRoleClick(index)}
               >
-                <img src={role.img} alt={role.name} title={role.name} />
+                <img
+                  src={role_resources_base_url + role.img}
+                  alt={role.name}
+                  title={role.name}
+                />
                 <div
                   className={styles.infoIcon}
                   onClick={(e) => handleInfoClick(e, role.description)}
@@ -578,6 +667,8 @@ function Game({ socket }: GameProps) {
         </>
       )}
 
+      <img src='https://github.com/UchihaSasuka/ultimate-werewolf-resource/blob/master/images/avatars/Aatrox.png'></img>
+
       {isHost && (
         <>
           {!gameState || !gameState.started ? (
@@ -596,13 +687,16 @@ function Game({ socket }: GameProps) {
             {isVisible && (
               <img
                 className={styles.ownCardImg}
-                src={
+                src={`${role_resources_base_url}${
                   gameState.players.find((p) => p.id === socket.id)?.role.img
-                }
+                }`}
               />
             )}
             {!isVisible && (
-              <img className={styles.ownCardback} src={'/cardback.png'} />
+              <img
+                className={styles.ownCardback}
+                src={'${role_resources_base_url}/cardback.png'}
+              />
             )}
             <div className={styles.roleCount}>
               {isVisible
@@ -628,7 +722,7 @@ function Game({ socket }: GameProps) {
                 ? socket.id &&
                   logs[socket.id] &&
                   Object.keys(logs[socket.id]).map((key) =>
-                    logs[socket.id || ''][key].map((log,idx) => (
+                    logs[socket.id || ''][key].map((log, idx) => (
                       <li key={`${key}-${idx}`}>
                         {getLogMessage(log, socket.id)}
                       </li>
@@ -637,7 +731,7 @@ function Game({ socket }: GameProps) {
                 : Object.keys(logs).map(
                     (socketId) =>
                       logs[socketId]['2'] &&
-                      logs[socketId]['2']?.map((log: string,idx) => (
+                      logs[socketId]['2']?.map((log: string, idx) => (
                         <li key={`${socketId}-1-${idx}`}>
                           {getLogMessage(log, socketId)}
                         </li>

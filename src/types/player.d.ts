@@ -1,4 +1,5 @@
 import { Role } from './role';
+import { Avatar } from './avatar';
 
 export interface Player {
   id: string;
@@ -7,4 +8,5 @@ export interface Player {
   role: Role;
   hasVoted: boolean;
   initialRole: Role;
+  avatar: Avatar;
 }
