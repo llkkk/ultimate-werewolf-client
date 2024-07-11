@@ -144,10 +144,17 @@ function Game({ socket }: GameProps) {
   // 更换用户头像
   const handleAvatarClick = (avatar: Avatar) => {
     if (selectedPlayer) {
-      // 假设游戏状态包含一个方法可以设置玩家头像
+      const currentPlayer = gameState?.players.find((p) => p.id === socket.id);
+      if (currentPlayer) {
+        currentPlayer.avatar = avatar;
+      }
       selectedPlayer.avatar = avatar;
       setShowAvatarSelector(false);
       setSelectedPlayer(null);
+      socket.emit('updatePlayer', {
+        room: roomID,
+        player: currentPlayer,
+      });
     }
   };
 

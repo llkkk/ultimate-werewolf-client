@@ -360,8 +360,8 @@ h3 {
   border-radius: 5%;
 }
 .ownCardImg {
-  width: 12vw;
-  height: 12vw;
+  width: 10vw;
+  height: 10vw;
 }
 .ownCardback {
   width: 12vw;
@@ -622,12 +622,21 @@ h3 {
     border-radius: 5%;
   }
   .ownCardImg {
-    width: 60px;
-    height: 60px;
+    width: 40px;
+    height: 40px;
   }
   .ownCardback {
     width: 60px;
     height: 80px;
     z-index: 10;
+  }
+
+  .avatarImage {
+    width: 40px;
+    height: 40px;
+    margin: 10px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.3s;
   }
 }
