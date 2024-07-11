@@ -51,7 +51,7 @@ const Home: React.FC<HomeProps> = ({ socket }) => {
             localStorage.setItem('host', response.host); // 保存房主信息
           }
           saveRoomToLocalStorage(newRoomID);
-          navigate(`/room/${newRoomID}`);
+          navigate(`/room/${newRoomID}`,{replace:true});
         } else {
           showTip(response.message || '');
         }
@@ -86,7 +86,7 @@ const Home: React.FC<HomeProps> = ({ socket }) => {
   };
   const joinRoom = (joinRoomID?: string) => {
     if (joinRoomID) setRoomID(joinRoomID);
-    if (roomID.trim() === '') {
+    if (joinRoomID==undefined||joinRoomID.trim() === '') {
       showTip('请输入房间号');
       return;
     }
@@ -97,7 +97,7 @@ const Home: React.FC<HomeProps> = ({ socket }) => {
     localStorage.setItem('username', username);
     socket.emit(
       'joinRoom',
-      { room: roomID, username },
+      { room: joinRoomID, username },
       (response: {
         status: string;
         message?: string;
@@ -111,9 +111,10 @@ const Home: React.FC<HomeProps> = ({ socket }) => {
           if (response.host) {
             localStorage.setItem('host', response.host); // 保存房主信息
           }
-          saveRoomToLocalStorage(roomID);
-          localStorage.setItem('roomID', roomID);
-          navigate(`/room/${roomID}`);
+          saveRoomToLocalStorage(joinRoomID);
+          localStorage.setItem('roomID', joinRoomID);
+          navigate(`/room/${joinRoomID}`,{replace:true});
+
         } else {
           showTip(response.message || '');
           removeRecentRoom(roomID);

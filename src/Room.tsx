@@ -506,6 +506,7 @@ function Game({ socket }: GameProps) {
                   alt={`底牌 ${index + 1}`}
                   title={`底牌 ${index + 1}`}
                   onClick={() => handleDeckClick(index)}
+                  className={styles.deckGridBackImg}
                 />)}
                 {gameState.subPhase === '结算环节' && (<div className={styles.deckGridItem}><img
                   key={index}

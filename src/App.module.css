@@ -218,18 +218,19 @@ h5 {
   position: relative;
 }
 
-.deckGrid img {
+.deckGridBackImg {
   width: 9vw;
   height: 14vw;
   border-radius: 5px;
   box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1);
 }
-.deckGridItem{
-  
+.voteResults li,.logs li{
+  font-size: 2vw;
+  font-weight: 100;
 }
 .deckGridImg {
   width: 9vw ;
-  height: 9vw !important;
+  height: 9vw;
   max-height: 9vw;
   border-radius: 5px;
   box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1);
@@ -548,13 +549,15 @@ button{
     border-radius: 50%;
   }
 
-  .deckGrid img {
+  .deckGridBackImg {
     width: 60px;
-    height: 90px;
+    height: 80px;
   }
   .deckGridImg{
     width: 60px;
-    width: 60px;
+    height: 60px !important;
+    max-height: 60px;
+
   }
   .deckGrid {
     display: flex;
@@ -562,6 +565,10 @@ button{
     gap: 1vw;
     margin-bottom: 20px;
     position: relative;
+  }
+  .deckGridItem{
+    width: 60px;
+    height: 80px;
   }
   .deckGridName {
     position: absolute;
@@ -708,8 +715,8 @@ button{
     border-radius: 5%;
   }
   .ownCardImg {
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
   }
   .ownCardback {
     width: 60px;
@@ -724,5 +731,9 @@ button{
     cursor: pointer;
     border: 2px solid transparent;
     transition: border-color 0.3s;
+  }
+  .voteResults li,.logs li{
+    font-size: 5px;
+    font-weight: 1000;
   }
 }
