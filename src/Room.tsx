@@ -30,7 +30,6 @@ function Game({ socket }: GameProps) {
   const [gameState, setGameState] = useState<GameState | null>(null);
   // const [preGameState, setPreRoles] = useState([]);
 
-  
   const abilities = {
     viewHand: { name: '查看手牌', max: 1 },
     swapHand: { name: '交换手牌', max: 1 },
@@ -45,29 +44,29 @@ function Game({ socket }: GameProps) {
   };
   const daySubPhases = ['讨论环节', '投票环节', '结算环节'];
   const nightSubPhases = [
-    "爪牙",
-    "狼人",
-    "狼先知",
-    "守夜人",
-    "诅咒者",
-    "预言家",
-    "哨兵",
-    "强盗",
-    "女巫",
-    "捣蛋鬼",
-    "新捣蛋鬼",
-    "酒鬼",
-    "盗贼",
-    "失眠者",
+    '爪牙',
+    '狼人',
+    '狼先知',
+    '守夜人',
+    '诅咒者',
+    '预言家',
+    '哨兵',
+    '强盗',
+    '女巫',
+    '捣蛋鬼',
+    '新捣蛋鬼',
+    '酒鬼',
+    '盗贼',
+    '失眠者',
   ];
   let [existingRoles, setExistingRoles] = useState<string[]>([]);
 
   useEffect(() => {
-    const filteredRoles = roles.filter(role => role.count > 0);
-    const updatedExistingRoles = nightSubPhases.filter(phase =>
-      filteredRoles.some(role => role.name === phase)
+    const filteredRoles = roles.filter((role) => role.count > 0);
+    const updatedExistingRoles = nightSubPhases.filter((phase) =>
+      filteredRoles.some((role) => role.name === phase),
     );
-    console.log(updatedExistingRoles,1,filteredRoles);
+    console.log(updatedExistingRoles, 1, filteredRoles);
     setExistingRoles(updatedExistingRoles);
   }, [roles]);
   const [isHost, setIsHost] = useState(
@@ -258,7 +257,7 @@ function Game({ socket }: GameProps) {
   };
 
   const removePlayer = (index: number) => {
-    if (!isHost || socket.id==players[index].id) return;
+    if (!isHost || socket.id == players[index].id) return;
 
     socket.emit('removePlayer', { room: roomID, index });
   };
@@ -377,19 +376,23 @@ function Game({ socket }: GameProps) {
   };
 
   const renderGameConfig = () => {
-    return roles.filter(role => role.count > 0).map((role, index) => (
-          <div key={index} className={styles.gameRoleItem} >
-            <img src={role.img} alt={role.name} title={role.name} />
-            <div
-              className={styles.gameInfoIcon}
-              onClick={(e) => handleInfoClick(e, role.description)}
-              onMouseLeave={handleInfoLeave}
-            >
-              ?
-            </div>
-            <div  className={styles.gameInfoName}>{role.name}:{role.count}</div>
+    return roles
+      .filter((role) => role.count > 0)
+      .map((role, index) => (
+        <div key={index} className={styles.gameRoleItem}>
+          <img src={role.img} alt={role.name} title={role.name} />
+          <div
+            className={styles.gameInfoIcon}
+            onClick={(e) => handleInfoClick(e, role.description)}
+            onMouseLeave={handleInfoLeave}
+          >
+            ?
           </div>
-    ));
+          <div className={styles.gameInfoName}>
+            {role.name}:{role.count}
+          </div>
+        </div>
+      ));
   };
 
   const resetGame = () => {
@@ -413,16 +416,22 @@ function Game({ socket }: GameProps) {
           <h5>本局游戏配置</h5>
           <div className={styles.gameRole}>{renderGameConfig()}</div>
           <h5>行动顺序</h5>
-        <div>
-          {existingRoles.map((phase, index) => (
-            <><span key={index} style={{ color: phase === gameState.subPhase ? 'red' : 'black' }}>
-              {phase} 
-            </span><span>{index < existingRoles.length - 1 ? '→' : ''}</span></>
-  ))}
-</div>
+          <div>
+            {existingRoles.map((phase, index) => (
+              <>
+                <span
+                  key={index}
+                  style={{
+                    color: phase === gameState.subPhase ? 'red' : 'black',
+                  }}
+                >
+                  {phase}
+                </span>
+                <span>{index < existingRoles.length - 1 ? '→' : ''}</span>
+              </>
+            ))}
+          </div>
         </>
-
-
       )}
       {gameState && gameState.started && (
         <>
@@ -453,34 +462,66 @@ function Game({ socket }: GameProps) {
                   ? () => {
                       joinGame(index);
                     }
-                  : ((gameState && gameState.started)?()=>{
-handleCardClick(player)
-
-                  }:() => {
+                  : gameState && gameState.started
+                  ? () => {
+                      handleCardClick(player);
+                    }
+                  : () => {
                       removePlayer(index);
-                    })
+                    }
               }
             >
-              {host === player.id && (<span className={styles.roomHolder} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>房主</span>)}
-              {(!gameState || !gameState.started) && isHost && player.id!==socket.id &&(<span className={styles.removeItem} >
-              ×
-              </span>) }
-              { socket.id!==player.id &&(<span className={styles.playerItemIndex} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>
-                {index + 1}
-              </span>) }
-              { socket.id===player.id &&(<span className={styles.isMe} style={{ backgroundColor: player.id === socket.id ? 'rgb(234 88 12)' : 'black'}}>
-              我
-              </span>) }
-              <span className={styles.onlineStatus} style={{ backgroundColor: player.offline ? 'grey' : 'green' }}></span>
-          </div>
-          {gameState && gameState.started && gameState.subPhase && !daySubPhases.includes(gameState.subPhase) && (
-              <>
-                 <div  className={styles.playerItemBtn}
-                  >
-                    {player.username}
-                  </div>
-              </>
-            )}
+              {host === player.id && (
+                <span
+                  className={styles.roomHolder}
+                  style={{
+                    backgroundColor:
+                      player.id === socket.id ? 'rgb(234 88 12)' : 'black',
+                  }}
+                >
+                  房主
+                </span>
+              )}
+              {(!gameState || !gameState.started) &&
+                isHost &&
+                player.id !== socket.id && (
+                  <span className={styles.removeItem}>×</span>
+                )}
+              {socket.id !== player.id && (
+                <span
+                  className={styles.playerItemIndex}
+                  style={{
+                    backgroundColor:
+                      player.id === socket.id ? 'rgb(234 88 12)' : 'black',
+                  }}
+                >
+                  {index + 1}
+                </span>
+              )}
+              {socket.id === player.id && (
+                <span
+                  className={styles.isMe}
+                  style={{
+                    backgroundColor:
+                      player.id === socket.id ? 'rgb(234 88 12)' : 'black',
+                  }}
+                >
+                  我
+                </span>
+              )}
+              <span
+                className={styles.onlineStatus}
+                style={{ backgroundColor: player.offline ? 'grey' : 'green' }}
+              ></span>
+            </div>
+            {gameState &&
+              gameState.started &&
+              gameState.subPhase &&
+              !daySubPhases.includes(gameState.subPhase) && (
+                <>
+                  <div className={styles.playerItemBtn}>{player.username}</div>
+                </>
+              )}
             {gameState &&
               gameState.subPhase &&
               gameState.subPhase === '投票环节' && (
@@ -552,21 +593,24 @@ handleCardClick(player)
 
       {gameState && gameState.started && (
         <>
-          <div
-                className={styles.ownCard}
-                onClick={() => toggleVisibility()}
-                >
-             { isVisible &&    <img className={styles.ownCardImg} src={
-               gameState.players.find((p) => p.id === socket.id)?.role.img
-            } />}
-            { !isVisible && <img className={styles.ownCardback} src={
-               '/cardback.png'
-            } />}
-              <div className={styles.roleCount}>
+          <div className={styles.ownCard} onClick={() => toggleVisibility()}>
+            {isVisible && (
+              <img
+                className={styles.ownCardImg}
+                src={
+                  gameState.players.find((p) => p.id === socket.id)?.role.img
+                }
+              />
+            )}
+            {!isVisible && (
+              <img className={styles.ownCardback} src={'/cardback.png'} />
+            )}
+            <div className={styles.roleCount}>
               {isVisible
-              ? gameState.players.find((p) => p.id === socket.id)?.role.name:''}
-                </div>
-              </div>
+                ? gameState.players.find((p) => p.id === socket.id)?.role.name
+                : ''}
+            </div>
+          </div>
           <h5>当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}</h5>
           {gameState.subPhase === '讨论环节' && gameState.discussionInfo && (
             <div className={styles.currentPhase}>
