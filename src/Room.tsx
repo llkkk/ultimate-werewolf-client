@@ -24,6 +24,8 @@ function Game({ socket }: GameProps) {
   const [username, setUsername] = useState(
     localStorage.getItem('username') || '',
   );
+  const [userAvatar, setUserAvatar] = useState<Avatar | null>(null);
+
   const [players, setPlayers] = useState<Player[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   // const [isHide, setIsHide] = useState(false);
@@ -84,6 +86,7 @@ function Game({ socket }: GameProps) {
       filteredRoles.some((role) => role.name === phase),
     );
 
+    setExistingRoles(updatedExistingRoles);
     // 初始化头像图片
     const fetchAvatars = async () => {
       const response = await fetch(avatar_resources_list_url);
@@ -97,8 +100,19 @@ function Game({ socket }: GameProps) {
     };
     fetchAvatars();
 
-    console.log(updatedExistingRoles, 1, filteredRoles);
-    setExistingRoles(updatedExistingRoles);
+    //获取缓存的用户头像
+    const storedAvatar = localStorage.getItem('userAvatar');
+
+    if (storedAvatar) {
+      try {
+        const parsedAvatar: Avatar = JSON.parse(storedAvatar);
+        setUserAvatar(parsedAvatar);
+        console.log(parsedAvatar);
+
+      } catch (error) {
+        console.error('Failed to parse userAvatar from localStorage', error);
+      }
+    }
   }, [roles]);
 
   const [isHost, setIsHost] = useState(
@@ -110,10 +124,18 @@ function Game({ socket }: GameProps) {
   }>({});
   const [swapTargets, setSwapTargets] = useState<string[]>([]);
   const [isVisible, setIsVisible] = useState(true);
-
+  const [isDivVisible, setIsDivVisible] = useState(true);
+  
   // 点击事件处理函数
   const toggleVisibility = () => {
     setIsVisible(!isVisible);
+    const timer = setTimeout(() => {
+      // 1秒后执行的方法
+      setIsDivVisible(!isDivVisible);
+    }, 1000);
+
+    // 清除定时器，防止内存泄漏
+    return () => clearTimeout(timer);
   };
 
   const generateRandomPlayerName = () => {
@@ -151,6 +173,7 @@ function Game({ socket }: GameProps) {
       selectedPlayer.avatar = avatar;
       setShowAvatarSelector(false);
       setSelectedPlayer(null);
+      localStorage.setItem("userAvatar", JSON.stringify(avatar))
       socket.emit('updatePlayer', {
         room: roomID,
         player: currentPlayer,
@@ -174,6 +197,7 @@ function Game({ socket }: GameProps) {
             localStorage.setItem('roles', JSON.stringify(response.roles)); // 保存角色配置
             localStorage.setItem('players', JSON.stringify(response.players)); // 保存玩家信息
             localStorage.setItem('host', response.host); // 保存房主信息
+            //TODO头像本地有保存，直接取本地更新远端
             saveRoomToLocalStorage(roomID);
             setPlayers(response.players || []);
             setRoles(response.roles || roles);
@@ -461,6 +485,9 @@ function Game({ socket }: GameProps) {
 
   return (
     <div className={styles.container}>
+      <div className={`${styles.operateBtnn} ${styles.backHome}`} onClick={()=>
+        leaveRoom()
+      }>返回主页</div>
       <h4>
         房间号:
         <span
@@ -549,10 +576,10 @@ function Game({ socket }: GameProps) {
                     }
               }
             >
-              {player.avatar && (
+              {((socket.id == player.id && userAvatar && userAvatar.img) || player.avatar) && (
                 <img
                   className={styles.ownCardImg}
-                  src={`${player.avatar.img}`}
+                  src={socket.id == player.id && userAvatar && userAvatar.img ? userAvatar.img : player.avatar.img}
                   alt='Role Image'
                 />
               )}
@@ -727,7 +754,7 @@ function Game({ socket }: GameProps) {
             </div>
           </div>
           <div className={styles.hideCurrentRole} onClick={() => toggleVisibility()}>{isVisible ? '隐藏当前身份' : '显示当前身份'}</div>
-          <div className={`${styles.hiddenItem} ${isVisible ? styles.shown : styles.hidden}`}><h5>当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}</h5>
+          {isDivVisible &&(<div className={`${styles.hiddenItem} ${isVisible ? styles.shown : styles.hidden}`}><h5>当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}</h5>
             {gameState.subPhase === '讨论环节' && gameState.discussionInfo && (
               <div className={styles.currentPhase}>
                 <div className={styles.discussionInfo}>
@@ -761,9 +788,8 @@ function Game({ socket }: GameProps) {
                       )),
                   )}
               </ul>
-            </div></div>
-
-
+            </div>
+          </div>)}
           {gameState.subPhase === '结算环节' && (
             <>
               <h5>投票结果</h5>
