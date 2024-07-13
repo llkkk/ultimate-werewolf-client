@@ -125,7 +125,7 @@ function Game({ socket }: GameProps) {
   const [swapTargets, setSwapTargets] = useState<string[]>([]);
   const [isVisible, setIsVisible] = useState(true);
   const [isDivVisible, setIsDivVisible] = useState(true);
-  
+
   // 点击事件处理函数
   const toggleVisibility = () => {
     setIsVisible(!isVisible);
@@ -175,7 +175,7 @@ function Game({ socket }: GameProps) {
       setShowAvatarSelector(false);
       setSelectedPlayer(null);
       localStorage.setItem("userAvatar", JSON.stringify(avatar))
-	  socket.emit('updatePlayer', {
+      socket.emit('updatePlayer', {
         room: roomID,
         player: currentPlayer,
       });
@@ -483,7 +483,7 @@ function Game({ socket }: GameProps) {
 
   return (
     <div className={styles.container}>
-      <div className={`${styles.operateBtnn} ${styles.backHome}`} onClick={()=>
+      <div className={`${styles.operateBtnn} ${styles.backHome}`} onClick={() =>
         leaveRoom()
       }>返回主页</div>
       <h4>
@@ -560,13 +560,13 @@ function Game({ socket }: GameProps) {
               onClick={
                 player.username === null
                   ? () => {
-                      joinGame(index);
-                    }
+                    joinGame(index);
+                  }
                   : gameState && gameState.started
-                  ? () => {
+                    ? () => {
                       handleCardClick(player);
                     }
-                  : () => {
+                    : () => {
                       removePlayer(index);
                     }
               }
@@ -670,7 +670,7 @@ function Game({ socket }: GameProps) {
               style={{
                 color:
                   roles.reduce((sum, role) => sum + role.count, 0) >
-                  players.length + 3
+                    players.length + 3
                     ? 'red'
                     : 'black',
               }}
@@ -734,9 +734,8 @@ function Game({ socket }: GameProps) {
             {isVisible && (
               <img
                 className={styles.ownCardImg}
-                src={`${role_resources_base_url}${
-                  gameState.players.find((p) => p.id === socket.id)?.role.img
-                }`}
+                src={`${role_resources_base_url}${gameState.players.find((p) => p.id === socket.id)?.role.img
+                  }`}
               />
             )}
             {!isVisible && (
@@ -751,23 +750,26 @@ function Game({ socket }: GameProps) {
                 : ''}
             </div>
           </div>
-<div className={styles.hideCurrentRole} onClick={() => toggleVisibility()}>{isVisible ? '隐藏当前身份' : '显示当前身份'}</div>
-          <div className={`${styles.hiddenItem} ${isVisible ? styles.shown : styles.hidden}`}><h5>当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}</h5>            {gameState.subPhase === '讨论环节' && gameState.discussionInfo && (
-              <div className={styles.currentPhase}>
-                <div className={styles.discussionInfo}>
-                  <p>
-                    从玩家{gameState.discussionInfo.index + 1}-
-                    {gameState.discussionInfo.startingPlayer.username} 开始，按{' '}
-                    {gameState.discussionInfo.direction} 顺序发言。
-                  </p>
+          <div className={styles.hideCurrentRole} onClick={() => toggleVisibility()}>{isVisible ? '隐藏当前身份' : '显示当前身份'}</div>
+          {isDivVisible && (
+            <div className={`${styles.hiddenItem} ${isVisible ? styles.shown : styles.hidden}`}>
+              <h5>当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}</h5>
+              {gameState.subPhase === '讨论环节' && gameState.discussionInfo && (
+                <div className={styles.currentPhase}>
+                  <div className={styles.discussionInfo}>
+                    <p>
+                      从玩家{gameState.discussionInfo.index + 1}-
+                      {gameState.discussionInfo.startingPlayer.username} 开始，按{' '}
+                      {gameState.discussionInfo.direction} 顺序发言。
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
-            <h5>游戏日志</h5>
-            <div className={styles.logs}>
-              <ul>
-                {gameState.subPhase !== '结算环节'
-                  ? socket.id &&
+              )}
+              <h5>游戏日志</h5>
+              <div className={styles.logs}>
+                <ul>
+                  {gameState.subPhase !== '结算环节'
+                    ? socket.id &&
                     logs[socket.id] &&
                     Object.keys(logs[socket.id]).map((key) =>
                       logs[socket.id || ''][key].map((log, idx) => (
@@ -776,7 +778,7 @@ function Game({ socket }: GameProps) {
                         </li>
                       )),
                     )
-                  : Object.keys(logs).map(
+                    : Object.keys(logs).map(
                       (socketId) =>
                         logs[socketId]['2'] &&
                         logs[socketId]['2']?.map((log: string, idx) => (
@@ -785,9 +787,10 @@ function Game({ socket }: GameProps) {
                           </li>
                         )),
                     )}
-              </ul>
- </div>
-          </div>)}          {gameState.subPhase === '结算环节' && (
+                </ul>
+              </div>
+            </div>)}
+          {gameState.subPhase === '结算环节' && (
             <>
               <h5>投票结果</h5>
               <div className={styles.voteResults}>
