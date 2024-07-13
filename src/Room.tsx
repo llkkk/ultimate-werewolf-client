@@ -39,7 +39,7 @@ function Game({ socket }: GameProps) {
 
   // 角色图片基础地址
   const role_resources_base_url =
-    'https://uchihasasuka.github.io/ultimate-werewolf-resource/images/roles';
+    'https://cdn.jsdelivr.net/gh/uchihasasuka/ultimate-werewolf-resource@master/images/roles';
 
   // 获取头像图片列表地址
   const avatar_resources_list_url =
@@ -47,7 +47,7 @@ function Game({ socket }: GameProps) {
 
   // 头像图片基础地址
   const avatar_resources_base_url =
-    'https://uchihasasuka.github.io/ultimate-werewolf-resource/images/avatars/';
+    'https://cdn.jsdelivr.net/gh/uchihasasuka/ultimate-werewolf-resource@master/images/avatars/';
 
   const abilities = {
     viewHand: { name: '查看手牌', max: 1 },
@@ -61,7 +61,7 @@ function Game({ socket }: GameProps) {
     lockPlayer: { name: '锁定玩家身份', max: 1 },
     votePlayer: { name: '票出该玩家则获胜', max: 1 },
   };
-  const daySubPhases = ['讨论环节', '投票环节', '结算环节'];
+  //const daySubPhases = ['讨论环节', '投票环节', '结算环节'];
   const nightSubPhases = [
     '爪牙',
     '狼人',
@@ -165,6 +165,7 @@ function Game({ socket }: GameProps) {
 
   // 更换用户头像
   const handleAvatarClick = (avatar: Avatar) => {
+    console.log('更新头像信息1');
     if (selectedPlayer) {
       const currentPlayer = gameState?.players.find((p) => p.id === socket.id);
       if (currentPlayer) {
@@ -174,7 +175,7 @@ function Game({ socket }: GameProps) {
       setShowAvatarSelector(false);
       setSelectedPlayer(null);
       localStorage.setItem("userAvatar", JSON.stringify(avatar))
-      socket.emit('updatePlayer', {
+	  socket.emit('updatePlayer', {
         room: roomID,
         player: currentPlayer,
       });
@@ -388,15 +389,14 @@ function Game({ socket }: GameProps) {
   };
 
   const handleCardClick = (player: Player) => {
+    if (player.id === socket.id) return;
     if (canPerformAction(abilities.viewHand)) {
       nightAction(abilities.viewHand.name, { target1: { id: player.id } });
     } else if (canPerformAction(abilities.swapHand)) {
       if (swapTargets.length === 0) {
-        if (player.id !== socket.id) {
-          setSwapTargets([player.id]);
-        }
+        setSwapTargets([player.id]);
       } else if (swapTargets.length === 1) {
-        if (player.id !== socket.id && player.id !== swapTargets[0]) {
+        if (player.id !== swapTargets[0]) {
           setSwapTargets([...swapTargets, player.id]);
           nightAction(abilities.swapHand.name, {
             target1: { type: 'player', id: swapTargets[0] },
@@ -406,21 +406,15 @@ function Game({ socket }: GameProps) {
         }
       }
     } else if (canPerformAction(abilities.viewAndSwap)) {
-      if (player.id !== socket.id) {
-        const currentPlayer = gameState?.players.find(
-          (p) => p.id === socket.id,
-        );
-        nightAction(abilities.viewAndSwap.name, {
-          target1: { type: 'player', id: player.id },
-          target2: { type: 'player', id: currentPlayer?.id },
-        });
-      }
+      const currentPlayer = gameState?.players.find((p) => p.id === socket.id);
+      nightAction(abilities.viewAndSwap.name, {
+        target1: { type: 'player', id: player.id },
+        target2: { type: 'player', id: currentPlayer?.id },
+      });
     } else if (canPerformAction(abilities.votePlayer)) {
-      if (player.id !== socket.id) {
-        nightAction(abilities.votePlayer.name, {
-          target1: { type: 'player', id: player.id },
-        });
-      }
+      nightAction(abilities.votePlayer.name, {
+        target1: { type: 'player', id: player.id },
+      });
     } else if (canPerformAction(abilities.lockPlayer)) {
       nightAction(abilities.lockPlayer.name, {
         target1: { type: 'player', id: player.id },
@@ -452,9 +446,13 @@ function Game({ socket }: GameProps) {
   };
 
   const getLogMessage = (log: string, id: string | undefined) => {
+    const index = gameState
+      ? gameState.players.findIndex((p) => p.id === id) + 1
+      : 0;
     const currentPlayer = gameState?.players.find((p) => p.id === id);
+    console.log('玩家索引', index);
     return currentPlayer && currentPlayer.initialRole
-      ? `玩家-${currentPlayer.username}：${log}`
+      ? `玩家${index}-${currentPlayer.username}(${currentPlayer.initialRole.name})：${log}`
       : `未知角色：${log}`;
   };
 
@@ -525,34 +523,31 @@ function Game({ socket }: GameProps) {
           <div className={styles.deckGrid}>
             {gameState.leftoverCards.map((role, index) => (
               <>
-                {gameState.subPhase !== '结算环节' && (<img
-                  key={index}
-                  src={
-                    role_resources_base_url + '/cardback.png'
-                  }
-                  alt={`底牌 ${index + 1}`}
-                  title={`底牌 ${index + 1}`}
-                  onClick={() => handleDeckClick(index)}
-                  className={styles.deckGridBackImg}
-                />)}
-                {gameState.subPhase === '结算环节' && (<div className={styles.deckGridItem}><img
-                  key={index}
-                  src={
-                    role_resources_base_url + role.img
-                  }
-                  alt={`底牌 ${index + 1}`}
-                  title={`底牌 ${index + 1}`}
-                  className={styles.deckGridImg}
-                  onClick={() => handleDeckClick(index)}
-                />
-                  <div className={styles.roleCount}>
-                    {role.name
-                    }
-                  </div></div>)}
-
+                {gameState.subPhase !== '结算环节' && (
+                  <img
+                    key={index}
+                    src={role_resources_base_url + '/cardback.png'}
+                    alt={`底牌 ${index + 1}`}
+                    title={`底牌 ${index + 1}`}
+                    onClick={() => handleDeckClick(index)}
+                    className={styles.deckGridBackImg}
+                  />
+                )}
+                {gameState.subPhase === '结算环节' && (
+                  <div className={styles.deckGridItem}>
+                    <img
+                      key={index}
+                      src={role_resources_base_url + role.img}
+                      alt={`底牌 ${index + 1}`}
+                      title={`底牌 ${index + 1}`}
+                      className={styles.deckGridImg}
+                      onClick={() => handleDeckClick(index)}
+                    />
+                    <div className={styles.roleCount}>{role.name}</div>
+                  </div>
+                )}
               </>
             ))}
-
           </div>
         </>
       )}
@@ -565,13 +560,13 @@ function Game({ socket }: GameProps) {
               onClick={
                 player.username === null
                   ? () => {
-                    joinGame(index);
-                  }
+                      joinGame(index);
+                    }
                   : gameState && gameState.started
-                    ? () => {
+                  ? () => {
                       handleCardClick(player);
                     }
-                    : () => {
+                  : () => {
                       removePlayer(index);
                     }
               }
@@ -626,14 +621,11 @@ function Game({ socket }: GameProps) {
                 style={{ backgroundColor: player.offline ? 'grey' : 'green' }}
               ></span>
             </div>
-            {gameState &&
-              gameState.started &&
-              gameState.subPhase &&
-              !daySubPhases.includes(gameState.subPhase) && (
-                <>
-                  <div className={styles.playerItemBtn}>{player.username}</div>
-                </>
-              )}
+            {gameState && gameState.started && gameState.subPhase && (
+              <>
+                <div className={styles.playerItemBtn}>{player.username}</div>
+              </>
+            )}
             {gameState &&
               gameState.subPhase &&
               gameState.subPhase === '投票环节' && (
@@ -678,7 +670,7 @@ function Game({ socket }: GameProps) {
               style={{
                 color:
                   roles.reduce((sum, role) => sum + role.count, 0) >
-                    players.length + 3
+                  players.length + 3
                     ? 'red'
                     : 'black',
               }}
@@ -718,27 +710,33 @@ function Game({ socket }: GameProps) {
         </>
       )}
 
-
       {isHost && (
         <>
           {!gameState || !gameState.started ? (
-            <div className={styles.operateBtnn} onClick={startGame}>开始游戏</div>
+            <div className={styles.operateBtnn} onClick={startGame}>
+              开始游戏
+            </div>
           ) : gameState.subPhase === '结算环节' ? (
-            <div className={styles.operateBtnn} onClick={resetGame}>重新开始</div>
+            <div className={styles.operateBtnn} onClick={resetGame}>
+              重新开始
+            </div>
           ) : (
-            <div className={styles.operateBtnn} onClick={nextPhase}>下一阶段</div>
+            <div className={styles.operateBtnn} onClick={nextPhase}>
+              下一阶段
+            </div>
           )}
         </>
       )}
 
       {gameState && gameState.started && (
         <>
-          <div className={styles.ownCard} >
+          <div className={styles.ownCard}>
             {isVisible && (
               <img
                 className={styles.ownCardImg}
-                src={`${role_resources_base_url}${gameState.players.find((p) => p.id === socket.id)?.role.img
-                  }`}
+                src={`${role_resources_base_url}${
+                  gameState.players.find((p) => p.id === socket.id)?.role.img
+                }`}
               />
             )}
             {!isVisible && (
@@ -753,13 +751,13 @@ function Game({ socket }: GameProps) {
                 : ''}
             </div>
           </div>
-          <div className={styles.hideCurrentRole} onClick={() => toggleVisibility()}>{isVisible ? '隐藏当前身份' : '显示当前身份'}</div>
-          {isDivVisible &&(<div className={`${styles.hiddenItem} ${isVisible ? styles.shown : styles.hidden}`}><h5>当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}</h5>
-            {gameState.subPhase === '讨论环节' && gameState.discussionInfo && (
+<div className={styles.hideCurrentRole} onClick={() => toggleVisibility()}>{isVisible ? '隐藏当前身份' : '显示当前身份'}</div>
+          <div className={`${styles.hiddenItem} ${isVisible ? styles.shown : styles.hidden}`}><h5>当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}</h5>            {gameState.subPhase === '讨论环节' && gameState.discussionInfo && (
               <div className={styles.currentPhase}>
                 <div className={styles.discussionInfo}>
                   <p>
-                    从 {gameState.discussionInfo.startingPlayer.username} 开始，按{' '}
+                    从玩家{gameState.discussionInfo.index + 1}-
+                    {gameState.discussionInfo.startingPlayer.username} 开始，按{' '}
                     {gameState.discussionInfo.direction} 顺序发言。
                   </p>
                 </div>
@@ -770,27 +768,26 @@ function Game({ socket }: GameProps) {
               <ul>
                 {gameState.subPhase !== '结算环节'
                   ? socket.id &&
-                  logs[socket.id] &&
-                  Object.keys(logs[socket.id]).map((key) =>
-                    logs[socket.id || ''][key].map((log, idx) => (
-                      <li key={`${key}-${idx}`}>
-                        {getLogMessage(log, socket.id)}
-                      </li>
-                    )),
-                  )
-                  : Object.keys(logs).map(
-                    (socketId) =>
-                      logs[socketId]['2'] &&
-                      logs[socketId]['2']?.map((log: string, idx) => (
-                        <li key={`${socketId}-1-${idx}`}>
-                          {getLogMessage(log, socketId)}
+                    logs[socket.id] &&
+                    Object.keys(logs[socket.id]).map((key) =>
+                      logs[socket.id || ''][key].map((log, idx) => (
+                        <li key={`${key}-${idx}`}>
+                          {getLogMessage(log, socket.id)}
                         </li>
                       )),
-                  )}
+                    )
+                  : Object.keys(logs).map(
+                      (socketId) =>
+                        logs[socketId]['2'] &&
+                        logs[socketId]['2']?.map((log: string, idx) => (
+                          <li key={`${socketId}-1-${idx}`}>
+                            {getLogMessage(log, socketId)}
+                          </li>
+                        )),
+                    )}
               </ul>
-            </div>
-          </div>)}
-          {gameState.subPhase === '结算环节' && (
+ </div>
+          </div>)}          {gameState.subPhase === '结算环节' && (
             <>
               <h5>投票结果</h5>
               <div className={styles.voteResults}>
@@ -820,7 +817,9 @@ function Game({ socket }: GameProps) {
       )}
 
       {(!gameState || !gameState.started) && (
-        <div className={styles.operateBtnn} onClick={leaveRoom}>离开房间</div>
+        <div className={styles.operateBtnn} onClick={leaveRoom}>
+          离开房间
+        </div>
       )}
     </div>
   );
