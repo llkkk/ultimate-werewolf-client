@@ -33,7 +33,11 @@ function Game({ socket }: GameProps) {
   // const [preGameState, setPreRoles] = useState([]);
 
   // 用户头像相关
-  const [avatars, setAvatars] = useState<Avatar[]>([]);
+  const [avatars, setAvatars] = useState<Avatar[]>(
+    localStorage.getItem('avatars')
+      ? JSON.parse(localStorage.getItem('avatars')!)
+      : [],
+  );
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
@@ -87,18 +91,22 @@ function Game({ socket }: GameProps) {
     );
 
     setExistingRoles(updatedExistingRoles);
-    // 初始化头像图片
-    const fetchAvatars = async () => {
-      const response = await fetch(avatar_resources_list_url);
-      const data = await response.json();
-      const avatarsData = data.map((avatar: Avatar, index: number) => ({
-        name: avatar.name,
-        sha: index,
-        img: avatar_resources_base_url + avatar.name,
-      }));
-      setAvatars(avatarsData);
-    };
-    fetchAvatars();
+
+    if (avatars.length === 0) {
+      // 初始化头像图片
+      const fetchAvatars = async () => {
+        const response = await fetch(avatar_resources_list_url);
+        const data = await response.json();
+        const avatarsData = data.map((avatar: Avatar, index: number) => ({
+          name: avatar.name,
+          sha: index,
+          img: avatar_resources_base_url + avatar.name,
+        }));
+        setAvatars(avatarsData);
+        localStorage.setItem('avatars', JSON.stringify(avatarsData));
+      };
+      fetchAvatars();
+    }
 
     //获取缓存的用户头像
     const storedAvatar = localStorage.getItem('userAvatar');
