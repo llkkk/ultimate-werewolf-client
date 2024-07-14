@@ -586,7 +586,7 @@ function Game({ socket }: GameProps) {
                   className={styles.ownCardImg}
                   src={
                     gameState && gameState.subPhase === '结算环节'
-                      ? role_resources_base_url + player.initialRole.img
+                      ? role_resources_base_url + player.role.img
                       : player.avatar && player.avatar.img
                       ? player.avatar.img
                       : userAvatar?.img
