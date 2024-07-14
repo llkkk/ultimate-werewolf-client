@@ -449,7 +449,6 @@ function Game({ socket }: GameProps) {
       ? gameState.players.findIndex((p) => p.id === id) + 1
       : 0;
     const currentPlayer = gameState?.players.find((p) => p.id === id);
-    console.log('玩家索引', index);
     return currentPlayer && currentPlayer.initialRole
       ? `玩家${index}-${currentPlayer.username}(${currentPlayer.initialRole.name})：${log}`
       : `未知角色：${log}`;
@@ -755,7 +754,8 @@ function Game({ socket }: GameProps) {
             )}
             <div className={styles.roleCount}>
               {isVisible
-                ? gameState.players.find((p) => p.id === socket.id)?.role.name
+                ? gameState.players.find((p) => p.id === socket.id)?.initialRole
+                    .name
                 : ''}
             </div>
           </div>
@@ -791,20 +791,26 @@ function Game({ socket }: GameProps) {
                 <ul>
                   {gameState.subPhase !== '结算环节'
                     ? socket.id &&
-                      logs[socket.id] &&
-                      Object.keys(logs[socket.id]).map((key) =>
-                        logs[socket.id || ''][key].map((log, idx) => (
-                          <li key={`${key}-${idx}`}>
-                            {getLogMessage(log, socket.id)}
-                          </li>
-                        )),
-                      )
+                      (() => {
+                        const player = gameState.players.find(
+                          (p) => p.id === socket.id,
+                        );
+                        if (!player) return null;
+                        const username = player.username;
+                        return Object.keys(logs[username]).map((key) =>
+                          logs[username][key].map((log, idx) => (
+                            <li key={`${key}-${idx}`}>
+                              {getLogMessage(log, socket.id)}
+                            </li>
+                          )),
+                        );
+                      })()
                     : Object.keys(logs).map(
-                        (socketId) =>
-                          logs[socketId]['2'] &&
-                          logs[socketId]['2']?.map((log: string, idx) => (
-                            <li key={`${socketId}-1-${idx}`}>
-                              {getLogMessage(log, socketId)}
+                        (username) =>
+                          logs[username]['2'] &&
+                          logs[username]['2'].map((log, idx) => (
+                            <li key={`${username}-1-${idx}`}>
+                              {getLogMessage(log, username)}
                             </li>
                           )),
                       )}
