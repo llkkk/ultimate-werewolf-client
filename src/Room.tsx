@@ -797,13 +797,15 @@ function Game({ socket }: GameProps) {
                         );
                         if (!player) return null;
                         const username = player.username;
-                        return Object.keys(logs[username]).map((key) =>
-                          logs[username][key].map((log, idx) => (
-                            <li key={`${key}-${idx}`}>
-                              {getLogMessage(log, socket.id)}
-                            </li>
-                          )),
-                        );
+                        if (logs[username]) {
+                          return Object.keys(logs[username]).map((key) =>
+                            logs[username][key].map((log, idx) => (
+                              <li key={`${key}-${idx}`}>
+                                {getLogMessage(log, socket.id)}
+                              </li>
+                            )),
+                          );
+                        }
                       })()
                     : Object.keys(logs).map(
                         (username) =>
