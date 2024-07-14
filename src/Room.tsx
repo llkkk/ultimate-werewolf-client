@@ -851,7 +851,19 @@ function Game({ socket }: GameProps) {
                         {players.find((p) => p.username === vote.playerName) &&
                           players.find((p) => p.username === vote.playerName)
                             ?.username}{' '}
-                        投票给 玩家
+                        （
+                        {(() => {
+                          const player = gameState.players.find(
+                            (p) => p.username === vote.playerName,
+                          );
+                          if (!player) return null;
+                          return (
+                            <span>
+                              {player.initialRole.name} -&gt; {player.role.name}
+                            </span>
+                          );
+                        })()}
+                        ） 投票给 玩家
                         {players.findIndex(
                           (p) => p.username === vote.targetName,
                         ) + 1}
