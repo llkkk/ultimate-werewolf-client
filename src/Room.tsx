@@ -444,11 +444,13 @@ function Game({ socket }: GameProps) {
     }
   };
 
-  const getLogMessage = (log: string, id: string | undefined) => {
+  const getLogMessage = (log: string, username: string | undefined) => {
     const index = gameState
-      ? gameState.players.findIndex((p) => p.id === id) + 1
+      ? gameState.players.findIndex((p) => p.username === username) + 1
       : 0;
-    const currentPlayer = gameState?.players.find((p) => p.id === id);
+    const currentPlayer = gameState?.players.find(
+      (p) => p.username === username,
+    );
     return currentPlayer && currentPlayer.initialRole
       ? `玩家${index}-${currentPlayer.username}(${currentPlayer.initialRole.name})：${log}`
       : `未知角色：${log}`;
@@ -577,9 +579,13 @@ function Game({ socket }: GameProps) {
                 <img
                   className={styles.ownCardImg}
                   src={
-                    socket.id == player.id && userAvatar && userAvatar.img
-                      ? userAvatar.img
-                      : player.avatar.img
+                    gameState && gameState.subPhase === '结算环节'
+                      ? player.initialRole.img
+                      : socket.id == player.id &&
+                        player.avatar &&
+                        player.avatar.img
+                      ? player.avatar.img
+                      : userAvatar?.img
                   }
                   alt='Role Image'
                 />
@@ -801,7 +807,7 @@ function Game({ socket }: GameProps) {
                           return Object.keys(logs[username]).map((key) =>
                             logs[username][key].map((log, idx) => (
                               <li key={`${key}-${idx}`}>
-                                {getLogMessage(log, socket.id)}
+                                {getLogMessage(log, username)}
                               </li>
                             )),
                           );
@@ -833,12 +839,22 @@ function Game({ socket }: GameProps) {
                   <ul>
                     {gameState.voteResults.map((vote, index) => (
                       <li key={index}>
-                        {players.find((p) => p.id === vote.playerId) &&
-                          players.find((p) => p.id === vote.playerId)
+                        玩家
+                        {players.findIndex(
+                          (p) => p.username === vote.playerName,
+                        ) + 1}
+                        -
+                        {players.find((p) => p.username === vote.playerName) &&
+                          players.find((p) => p.username === vote.playerName)
                             ?.username}{' '}
-                        投票给{' '}
-                        {players.find((p) => p.id === vote.targetId) &&
-                          players.find((p) => p.id === vote.targetId)?.username}
+                        投票给 玩家
+                        {players.findIndex(
+                          (p) => p.username === vote.playerName,
+                        ) + 1}
+                        -
+                        {players.find((p) => p.username === vote.targetName) &&
+                          players.find((p) => p.username === vote.targetName)
+                            ?.username}
                       </li>
                     ))}
                   </ul>

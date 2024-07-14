@@ -1,4 +1,4 @@
 export interface Vote {
-  playerId: string;
-  targetId: string;
+  playerName: string;
+  targetName: string;
 }
