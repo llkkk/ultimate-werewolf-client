@@ -574,22 +574,19 @@ function Game({ socket }: GameProps) {
                     }
               }
             >
-              {((socket.id == player.id && userAvatar && userAvatar.img) ||
-                player.avatar) && (
+              {
                 <img
                   className={styles.ownCardImg}
                   src={
                     gameState && gameState.subPhase === '结算环节'
-                      ? player.initialRole.img
-                      : socket.id == player.id &&
-                        player.avatar &&
-                        player.avatar.img
+                      ? role_resources_base_url + player.initialRole.img
+                      : player.avatar && player.avatar.img
                       ? player.avatar.img
                       : userAvatar?.img
                   }
                   alt='Role Image'
                 />
-              )}
+              }
               {host === player.id && (
                 <span
                   className={styles.roomHolder}
@@ -849,7 +846,7 @@ function Game({ socket }: GameProps) {
                             ?.username}{' '}
                         投票给 玩家
                         {players.findIndex(
-                          (p) => p.username === vote.playerName,
+                          (p) => p.username === vote.targetName,
                         ) + 1}
                         -
                         {players.find((p) => p.username === vote.targetName) &&
