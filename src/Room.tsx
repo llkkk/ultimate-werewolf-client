@@ -164,7 +164,6 @@ function Game({ socket }: GameProps) {
 
   // 更换用户头像
   const handleAvatarClick = (avatar: Avatar) => {
-    console.log('更新头像信息1');
     if (selectedPlayer) {
       const currentPlayer = gameState?.players.find((p) => p.id === socket.id);
       if (currentPlayer) {
@@ -173,7 +172,7 @@ function Game({ socket }: GameProps) {
       selectedPlayer.avatar = avatar;
       setShowAvatarSelector(false);
       setSelectedPlayer(null);
-      localStorage.setItem('userAvatar', JSON.stringify(avatar));
+      // localStorage.setItem('userAvatar', JSON.stringify(avatar));
       socket.emit('updatePlayer', {
         room: roomID,
         player: currentPlayer,
