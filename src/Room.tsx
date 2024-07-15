@@ -481,7 +481,7 @@ function Game({ socket }: GameProps) {
       .filter((role) => role.count > 0)
       .map((role, index) => (
         <div key={index} className={styles.gameRoleItem}>
-          <img src={role.img} alt={role.name} title={role.name} />
+          <img src={role.img}  title={role.name} />
           <div
             className={styles.gameInfoIcon}
             onClick={(e) => handleInfoClick(e, role.description)}
@@ -509,7 +509,7 @@ function Game({ socket }: GameProps) {
       >
         返回主页
       </div>
-      <h4>
+      <h5>
         房间号:
         <span
           onClick={() => handleCopy()}
@@ -517,12 +517,12 @@ function Game({ socket }: GameProps) {
         >
           {roomID}
         </span>
-      </h4>
+      </h5>
       {gameState && gameState.started && (
         <>
-          <h5>本局游戏配置</h5>
+          <h6>本局游戏配置</h6>
           <div className={styles.gameRole}>{renderGameConfig()}</div>
-          <h5>行动顺序</h5>
+          <h6>行动顺序</h6>
           <div className={styles.moveRange}>
             {existingRoles.map((phase, index) => (
               <>
@@ -542,7 +542,7 @@ function Game({ socket }: GameProps) {
       )}
       {gameState && gameState.started && (
         <>
-          <h5>底牌</h5>
+          <h6>底牌</h6>
           <div className={styles.deckGrid}>
             {gameState.leftoverCards.map((role, index) => (
               <>
@@ -550,7 +550,6 @@ function Game({ socket }: GameProps) {
                   <img
                     key={index}
                     src={role_resources_base_url + '/cardback.png'}
-                    alt={`底牌 ${index + 1}`}
                     title={`底牌 ${index + 1}`}
                     onClick={() => handleDeckClick(index)}
                     className={styles.deckGridBackImg}
@@ -561,7 +560,6 @@ function Game({ socket }: GameProps) {
                     <img
                       key={index}
                       src={role_resources_base_url + role.img}
-                      alt={`底牌 ${index + 1}`}
                       title={`底牌 ${index + 1}`}
                       className={styles.deckGridImg}
                       onClick={() => handleDeckClick(index)}
@@ -574,7 +572,7 @@ function Game({ socket }: GameProps) {
           </div>
         </>
       )}
-      <h5>玩家列表</h5>
+      <h6>玩家列表</h6>
       <div className={styles.playerGrid}>
         {players.map((player, index) => (
           <div key={index}>
@@ -596,7 +594,6 @@ function Game({ socket }: GameProps) {
                         ? player.avatar.img
                         : userAvatar?.img
                   }
-                  alt='Role Image'
                 />
               }
               {host === player.id && (
@@ -657,7 +654,6 @@ function Game({ socket }: GameProps) {
                 <img
                   key={avatar.name}
                   src={avatar.img}
-                  alt={avatar.name}
                   onClick={() => pickAvatar(avatar)}
                   className={styles.avatarImage}
                 />
@@ -676,7 +672,7 @@ function Game({ socket }: GameProps) {
       {
         (!gameState || !gameState.started) && (
           <>
-            <h5>
+            <h6>
               角色列表（
               <span
                 style={{
@@ -690,7 +686,7 @@ function Game({ socket }: GameProps) {
                 {roles.reduce((sum, role) => sum + role.count, 0)}
               </span>
               /{players.length + 3}）
-            </h5>
+            </h6>
             <div className={styles.roleGrid}>
               {roles.map((role, index) => (
                 <div
@@ -779,9 +775,9 @@ function Game({ socket }: GameProps) {
                 className={`${styles.hiddenItem} ${isVisible ? styles.shown : styles.hidden
                   }`}
               >
-                <h5>
+                <h6>
                   当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}
-                </h5>
+                </h6>
                 {gameState.subPhase === '讨论环节' &&
                   gameState.discussionInfo && (
                     <div className={styles.currentPhase}>
@@ -794,7 +790,7 @@ function Game({ socket }: GameProps) {
                       </div>
                     </div>
                   )}
-                <h5>游戏日志</h5>
+                <h6>游戏日志</h6>
                 <div className={styles.logs}>
                   <ul>
                     {gameState.subPhase !== '结算环节'
@@ -830,7 +826,7 @@ function Game({ socket }: GameProps) {
             )}
             {gameState.subPhase === '结算环节' && (
               <>
-                <h5>投票结果</h5>
+                <h6>投票结果</h6>
                 <div className={styles.voteResults}>
                   {gameState.winner && (
                     <p style={{ color: 'red', fontWeight: 'bold' }}>
