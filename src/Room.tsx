@@ -481,7 +481,7 @@ function Game({ socket }: GameProps) {
       .filter((role) => role.count > 0)
       .map((role, index) => (
         <div key={index} className={styles.gameRoleItem}>
-          <img src={role.img}  title={role.name} />
+          <img src={role.img}  />
           <div
             className={styles.gameInfoIcon}
             onClick={(e) => handleInfoClick(e, role.description)}
@@ -640,7 +640,7 @@ function Game({ socket }: GameProps) {
               ></span>
             </div>
 
-            <span style={{ fontSize: '14px', color: '#666', fontWeight: 'bold' }}>{player.username}</span>
+            <span className={styles.username} style={{ color: '#666', fontWeight: 'bold' }}>{player.username}</span>
 
           </div>
         ))}
@@ -696,8 +696,6 @@ function Game({ socket }: GameProps) {
                 >
                   <img
                     src={role_resources_base_url + role.img}
-                    alt={role.name}
-                    title={role.name}
                   />
                   <div
                     className={styles.infoIcon}
@@ -792,7 +790,7 @@ function Game({ socket }: GameProps) {
                   )}
                 <h6>游戏日志</h6>
                 <div className={styles.logs}>
-                  <ul>
+                  <div>
                     {gameState.subPhase !== '结算环节'
                       ? socket.id &&
                       (() => {
@@ -804,9 +802,9 @@ function Game({ socket }: GameProps) {
                         if (logs[username]) {
                           return Object.keys(logs[username]).map((key) =>
                             logs[username][key].map((log, idx) => (
-                              <li key={`${key}-${idx}`}>
+                              <p key={`${key}-${idx}`}>
                                 {getLogMessage(log, username)}
-                              </li>
+                              </p>
                             )),
                           );
                         }
@@ -815,12 +813,12 @@ function Game({ socket }: GameProps) {
                         (username) =>
                           logs[username]['2'] &&
                           logs[username]['2'].map((log, idx) => (
-                            <li key={`${username}-1-${idx}`}>
+                            <p key={`${username}-1-${idx}`}>
                               {getLogMessage(log, username)}
-                            </li>
+                            </p>
                           )),
                       )}
-                  </ul>
+                  </div>
                 </div>
               </div>
             )}
