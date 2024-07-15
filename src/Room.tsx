@@ -249,7 +249,7 @@ function Game({ socket }: GameProps) {
       setLogs(gameState.logs);
       setPlayers(gameState.players); // 确保玩家状态更新
       console.log('Game state updated', gameState);
-      if(gameState.majorPhase=='夜晚' && gameState.subPhase==players.find(player=>socket.id === player.id)?.initialRole.name)
+      if(gameState.majorPhase=='夜晚' && gameState.subPhase==gameState.players.find((player: { id: string | undefined; })=>socket.id === player.id)?.initialRole.name)
         {
           showTip("您可以开始行动了",2,'top')
         }

@@ -21,12 +21,13 @@ export function TipProvider({ children }: TipProviderProps) {
   const [isTop, setIsTop] = useState(false);
 
   const showTip = (content: string,time?:number,where?:string) => {
-    setTip({ content, visible: true });
     let timeoutTime=3000
     if(time)
     timeoutTime=time*1000
     if(where == 'top')
       setIsTop(true)
+    setTip({ content, visible: true });
+    
       
     setTimeout(() => {
       setTip({ content: '', visible: false });
