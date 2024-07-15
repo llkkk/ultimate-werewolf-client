@@ -367,6 +367,7 @@ function Game({ socket }: GameProps) {
 
   const nightAction = (action: string, data: object) => {
     socket.emit('nightAction', { room: roomID, action, data });
+    showTip("操作成功");
   };
 
   const nextPhase = () => {
@@ -574,7 +575,6 @@ function Game({ socket }: GameProps) {
                     }
                   : gameState && gameState.started
                   ? () => {
-                      handleCardClick(player);
                     }
                   : () => {
                       removePlayer(index);
@@ -652,6 +652,18 @@ function Game({ socket }: GameProps) {
                   投票
                 </div>
               )}
+
+              {gameState &&
+              gameState.majorPhase &&
+              gameState.majorPhase === '夜晚' && (
+                <div
+                  className={styles.playerItemBtn}
+                  onClick={() => handleCardClick(player)}
+                >
+                  选择
+                </div>
+              )}
+
           </div>
         ))}
       </div>
