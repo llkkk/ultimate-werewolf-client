@@ -28,9 +28,7 @@ function Game({ socket }: GameProps) {
 
   const [players, setPlayers] = useState<Player[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
-  // const [isHide, setIsHide] = useState(false);
   const [gameState, setGameState] = useState<GameState | null>(null);
-  // const [preGameState, setPreRoles] = useState([]);
 
   // 用户头像相关
   const [avatars, setAvatars] = useState<Avatar[]>(
@@ -171,7 +169,7 @@ function Game({ socket }: GameProps) {
   };
 
   // 更换用户头像
-  const handleAvatarClick = (avatar: Avatar) => {
+  const pickAvatar = (avatar: Avatar) => {
     if (selectedPlayer) {
       const currentPlayer = gameState?.players.find((p) => p.id === socket.id);
       if (currentPlayer) {
@@ -337,19 +335,32 @@ function Game({ socket }: GameProps) {
     );
   };
 
+  const handleAvatarClick = (player: Player, index: number) => {
+    if (gameState) {
+      if (!gameState.started) {
+        // 游戏未开始，换头像或踢人
+        removePlayer(index)
+      } else if (gameState.majorPhase === '夜晚') {
+        // 夜晚发动能力
+        handleCardClick(player);
+      } else if (gameState.subPhase === '投票环节') {
+        // 投票阶段投票
+        vote(player.id)
+      }
+    }
+  };
+
   const removePlayer = (index: number) => {
     // 先判断是否是自己 是自己统一走换头像的逻辑
     if (socket.id == players[index].id) {
       const player = players[index];
       setSelectedPlayer(player);
       setShowAvatarSelector(true);
-    } else {
-      // 如果不是房主没有移除权限
-      if (!isHost) return;
+    } else if (isHost) {
+      // 房主踢人
+      socket.emit('removePlayer', { room: roomID, index });
     }
-
-    socket.emit('removePlayer', { room: roomID, index });
-  };
+  }
 
   const leaveRoom = () => {
     socket.emit('leaveRoom', { room: roomID, username });
@@ -378,6 +389,7 @@ function Game({ socket }: GameProps) {
   const vote = (targetId: string) => {
     if (gameState?.players.find((p) => p.id === socket.id)?.hasVoted) {
       // 玩家已经投过票了
+      showTip('你已经投过票了,请查看下方游戏日志，并等待其他玩家投票完成');
       return;
     }
     socket.emit('vote', { room: roomID, targetId });
@@ -570,15 +582,8 @@ function Game({ socket }: GameProps) {
               className={styles.playerItem}
               onClick={
                 player.username === null
-                  ? () => {
-                      joinGame(index);
-                    }
-                  : gameState && gameState.started
-                  ? () => {
-                    }
-                  : () => {
-                      removePlayer(index);
-                    }
+                  ? () => joinGame(index)
+                  : () => handleAvatarClick(player, index)
               }
             >
               {
@@ -588,8 +593,8 @@ function Game({ socket }: GameProps) {
                     gameState && gameState.subPhase === '结算环节'
                       ? role_resources_base_url + player.role.img
                       : player.avatar && player.avatar.img
-                      ? player.avatar.img
-                      : userAvatar?.img
+                        ? player.avatar.img
+                        : userAvatar?.img
                   }
                   alt='Role Image'
                 />
@@ -637,183 +642,163 @@ function Game({ socket }: GameProps) {
                 style={{ backgroundColor: player.offline ? 'grey' : 'green' }}
               ></span>
             </div>
-            {gameState && gameState.started && gameState.subPhase && (
-              <>
-                <div className={styles.playerItemBtn}>{player.username}</div>
-              </>
-            )}
-            {gameState &&
-              gameState.subPhase &&
-              gameState.subPhase === '投票环节' &&
-              !gameState.players.find((p) => p.id === socket.id)?.hasVoted && (
-                <div
-                  className={styles.playerItemBtn}
-                  onClick={() => vote(player.id)}
-                >
-                  投票
-                </div>
-              )}
 
-              {gameState &&
-              gameState.majorPhase &&
-              gameState.majorPhase === '夜晚' && (
-                <div
-                  className={styles.playerItemBtn}
-                  onClick={() => handleCardClick(player)}
-                >
-                  选择
-                </div>
-              )}
+            <span style={{ fontSize: '14px', color: '#666', fontWeight: 'bold' }}>{player.username}</span>
 
           </div>
         ))}
       </div>
 
-      {showAvatarSelector && (
-        <div className={styles.avatarPickerOverlay}>
-          <div className={styles.avatarPicker}>
-            {avatars.map((avatar) => (
-              <img
-                key={avatar.name}
-                src={avatar.img}
-                alt={avatar.name}
-                onClick={() => handleAvatarClick(avatar)}
-                className={styles.avatarImage}
-              />
-            ))}
-            <button
-              onClick={() => setShowAvatarSelector(false)}
-              className={styles.cancelButton}
-            >
-              取消
-            </button>
-          </div>
-        </div>
-      )}
-
-      {(!gameState || !gameState.started) && (
-        <>
-          <h5>
-            角色列表（
-            <span
-              style={{
-                color:
-                  roles.reduce((sum, role) => sum + role.count, 0) >
-                  players.length + 3
-                    ? 'red'
-                    : 'black',
-              }}
-            >
-              {roles.reduce((sum, role) => sum + role.count, 0)}
-            </span>
-            /{players.length + 3}）
-          </h5>
-          <div className={styles.roleGrid}>
-            {roles.map((role, index) => (
-              <div
-                key={index}
-                className={styles.roleItem}
-                onClick={() => handleRoleClick(index)}
-              >
+      {
+        showAvatarSelector && (
+          <div className={styles.avatarPickerOverlay}>
+            <div className={styles.avatarPicker}>
+              {avatars.map((avatar) => (
                 <img
-                  src={role_resources_base_url + role.img}
-                  alt={role.name}
-                  title={role.name}
+                  key={avatar.name}
+                  src={avatar.img}
+                  alt={avatar.name}
+                  onClick={() => pickAvatar(avatar)}
+                  className={styles.avatarImage}
                 />
+              ))}
+              <button
+                onClick={() => setShowAvatarSelector(false)}
+                className={styles.cancelButton}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        )
+      }
+
+      {
+        (!gameState || !gameState.started) && (
+          <>
+            <h5>
+              角色列表（
+              <span
+                style={{
+                  color:
+                    roles.reduce((sum, role) => sum + role.count, 0) >
+                      players.length + 3
+                      ? 'red'
+                      : 'black',
+                }}
+              >
+                {roles.reduce((sum, role) => sum + role.count, 0)}
+              </span>
+              /{players.length + 3}）
+            </h5>
+            <div className={styles.roleGrid}>
+              {roles.map((role, index) => (
                 <div
-                  className={styles.infoIcon}
-                  onClick={(e) => handleInfoClick(e, role.description)}
-                  onMouseLeave={handleInfoLeave}
+                  key={index}
+                  className={styles.roleItem}
+                  onClick={() => handleRoleClick(index)}
                 >
-                  ?
-                </div>
-                <div className={styles.roleCount}>
-                  {role.name}: {role.count}
-                </div>
-              </div>
-            ))}
-            {tooltip.visible && (
-              <div className={styles.tooltip}>{tooltip.content}</div>
-            )}
-          </div>
-        </>
-      )}
-
-      {isHost && (
-        <>
-          {!gameState || !gameState.started ? (
-            <div className={styles.operateBtnn} onClick={startGame}>
-              开始游戏
-            </div>
-          ) : gameState.subPhase === '结算环节' ? (
-            <div className={styles.operateBtnn} onClick={resetGame}>
-              重新开始
-            </div>
-          ) : (
-            <div className={styles.operateBtnn} onClick={nextPhase}>
-              下一阶段
-            </div>
-          )}
-        </>
-      )}
-
-      {gameState && gameState.started && (
-        <>
-          <div className={styles.ownCard}>
-            {isVisible && (
-              <img
-                className={styles.ownCardImg}
-                src={`${role_resources_base_url}${
-                  gameState.players.find((p) => p.id === socket.id)?.initialRole
-                    .img
-                }`}
-              />
-            )}
-            {!isVisible && (
-              <img
-                className={styles.ownCardback}
-                src={`${role_resources_base_url}/cardback.png`}
-              />
-            )}
-            <div className={styles.roleCount}>
-              {isVisible
-                ? gameState.players.find((p) => p.id === socket.id)?.initialRole
-                    .name
-                : ''}
-            </div>
-          </div>
-          <div
-            className={styles.hideCurrentRole}
-            onClick={() => toggleVisibility()}
-          >
-            {isVisible ? '隐藏当前身份' : '显示当前身份'}
-          </div>
-          {isDivVisible && (
-            <div
-              className={`${styles.hiddenItem} ${
-                isVisible ? styles.shown : styles.hidden
-              }`}
-            >
-              <h5>
-                当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}
-              </h5>
-              {gameState.subPhase === '讨论环节' &&
-                gameState.discussionInfo && (
-                  <div className={styles.currentPhase}>
-                    <div className={styles.discussionInfo}>
-                      <p>
-                        从玩家{gameState.discussionInfo.index + 1}-
-                        {gameState.discussionInfo.startingPlayer.username}{' '}
-                        开始，按 {gameState.discussionInfo.direction} 顺序发言。
-                      </p>
-                    </div>
+                  <img
+                    src={role_resources_base_url + role.img}
+                    alt={role.name}
+                    title={role.name}
+                  />
+                  <div
+                    className={styles.infoIcon}
+                    onClick={(e) => handleInfoClick(e, role.description)}
+                    onMouseLeave={handleInfoLeave}
+                  >
+                    ?
                   </div>
-                )}
-              <h5>游戏日志</h5>
-              <div className={styles.logs}>
-                <ul>
-                  {gameState.subPhase !== '结算环节'
-                    ? socket.id &&
+                  <div className={styles.roleCount}>
+                    {role.name}: {role.count}
+                  </div>
+                </div>
+              ))}
+              {tooltip.visible && (
+                <div className={styles.tooltip}>{tooltip.content}</div>
+              )}
+            </div>
+          </>
+        )
+      }
+
+      {
+        isHost && (
+          <>
+            {!gameState || !gameState.started ? (
+              <div className={styles.operateBtnn} onClick={startGame}>
+                开始游戏
+              </div>
+            ) : gameState.subPhase === '结算环节' ? (
+              <div className={styles.operateBtnn} onClick={resetGame}>
+                重新开始
+              </div>
+            ) : (
+              <div className={styles.operateBtnn} onClick={nextPhase}>
+                下一阶段
+              </div>
+            )}
+          </>
+        )
+      }
+
+      {
+        gameState && gameState.started && (
+          <>
+            <div className={styles.ownCard}>
+              {isVisible && (
+                <img
+                  className={styles.ownCardImg}
+                  src={`${role_resources_base_url}${gameState.players.find((p) => p.id === socket.id)?.initialRole
+                    .img
+                    }`}
+                />
+              )}
+              {!isVisible && (
+                <img
+                  className={styles.ownCardback}
+                  src={`${role_resources_base_url}/cardback.png`}
+                />
+              )}
+              <div className={styles.roleCount}>
+                {isVisible
+                  ? gameState.players.find((p) => p.id === socket.id)?.initialRole
+                    .name
+                  : ''}
+              </div>
+            </div>
+            <div
+              className={styles.hideCurrentRole}
+              onClick={() => toggleVisibility()}
+            >
+              {isVisible ? '隐藏当前身份' : '显示当前身份'}
+            </div>
+            {isDivVisible && (
+              <div
+                className={`${styles.hiddenItem} ${isVisible ? styles.shown : styles.hidden
+                  }`}
+              >
+                <h5>
+                  当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}
+                </h5>
+                {gameState.subPhase === '讨论环节' &&
+                  gameState.discussionInfo && (
+                    <div className={styles.currentPhase}>
+                      <div className={styles.discussionInfo}>
+                        <p>
+                          从玩家{gameState.discussionInfo.index + 1}-
+                          {gameState.discussionInfo.startingPlayer.username}{' '}
+                          开始，按 {gameState.discussionInfo.direction} 顺序发言。
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                <h5>游戏日志</h5>
+                <div className={styles.logs}>
+                  <ul>
+                    {gameState.subPhase !== '结算环节'
+                      ? socket.id &&
                       (() => {
                         const player = gameState.players.find(
                           (p) => p.id === socket.id,
@@ -830,7 +815,7 @@ function Game({ socket }: GameProps) {
                           );
                         }
                       })()
-                    : Object.keys(logs).map(
+                      : Object.keys(logs).map(
                         (username) =>
                           logs[username]['2'] &&
                           logs[username]['2'].map((log, idx) => (
@@ -839,67 +824,70 @@ function Game({ socket }: GameProps) {
                             </li>
                           )),
                       )}
-                </ul>
-              </div>
-            </div>
-          )}
-          {gameState.subPhase === '结算环节' && (
-            <>
-              <h5>投票结果</h5>
-              <div className={styles.voteResults}>
-                {gameState.winner && (
-                  <p style={{ color: 'red', fontWeight: 'bold' }}>
-                    {gameState.winner}
-                  </p>
-                )}
-                {gameState.voteResults && gameState.voteResults.length > 0 && (
-                  <ul>
-                    {gameState.voteResults.map((vote, index) => (
-                      <li key={index}>
-                        玩家
-                        {players.findIndex(
-                          (p) => p.username === vote.playerName,
-                        ) + 1}
-                        -
-                        {players.find((p) => p.username === vote.playerName) &&
-                          players.find((p) => p.username === vote.playerName)
-                            ?.username}{' '}
-                        （
-                        {(() => {
-                          const player = gameState.players.find(
-                            (p) => p.username === vote.playerName,
-                          );
-                          if (!player) return null;
-                          return (
-                            <span>
-                              {player.initialRole.name} -&gt; {player.role.name}
-                            </span>
-                          );
-                        })()}
-                        ） 投票给 玩家
-                        {players.findIndex(
-                          (p) => p.username === vote.targetName,
-                        ) + 1}
-                        -
-                        {players.find((p) => p.username === vote.targetName) &&
-                          players.find((p) => p.username === vote.targetName)
-                            ?.username}
-                      </li>
-                    ))}
                   </ul>
-                )}
+                </div>
               </div>
-            </>
-          )}
-        </>
-      )}
+            )}
+            {gameState.subPhase === '结算环节' && (
+              <>
+                <h5>投票结果</h5>
+                <div className={styles.voteResults}>
+                  {gameState.winner && (
+                    <p style={{ color: 'red', fontWeight: 'bold' }}>
+                      {gameState.winner}
+                    </p>
+                  )}
+                  {gameState.voteResults && gameState.voteResults.length > 0 && (
+                    <ul>
+                      {gameState.voteResults.map((vote, index) => (
+                        <li key={index}>
+                          玩家
+                          {players.findIndex(
+                            (p) => p.username === vote.playerName,
+                          ) + 1}
+                          -
+                          {players.find((p) => p.username === vote.playerName) &&
+                            players.find((p) => p.username === vote.playerName)
+                              ?.username}{' '}
+                          （
+                          {(() => {
+                            const player = gameState.players.find(
+                              (p) => p.username === vote.playerName,
+                            );
+                            if (!player) return null;
+                            return (
+                              <span>
+                                {player.initialRole.name} -&gt; {player.role.name}
+                              </span>
+                            );
+                          })()}
+                          ） 投票给 玩家
+                          {players.findIndex(
+                            (p) => p.username === vote.targetName,
+                          ) + 1}
+                          -
+                          {players.find((p) => p.username === vote.targetName) &&
+                            players.find((p) => p.username === vote.targetName)
+                              ?.username}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </>
+            )}
+          </>
+        )
+      }
 
-      {(!gameState || !gameState.started) && (
-        <div className={styles.operateBtnn} onClick={leaveRoom}>
-          离开房间
-        </div>
-      )}
-    </div>
+      {
+        (!gameState || !gameState.started) && (
+          <div className={styles.operateBtnn} onClick={leaveRoom}>
+            离开房间
+          </div>
+        )
+      }
+    </div >
   );
 }
 
