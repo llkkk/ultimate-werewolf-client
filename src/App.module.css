@@ -743,4 +743,20 @@ button{
     font-size: 5px;
     font-weight: 1000;
   }
+  .operateBtnn{
+    color: #fff;
+    border-radius: 10px;
+    border-style: solid;
+    border-width: 0;
+    box-sizing: border-box;
+    padding: 10px;
+    margin: 5px auto;
+    width: 200px;
+      font-size: 20px;
+    background-color: #fc5554;
+    transition-duration: .15s;
+    transition-property: color,background-color,border-color,text-decoration-color,fill,stroke;
+    transition-timing-function: cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 3px 7px -1px rgba(0,0,0,.2),0 2px 5px -2px rgba(0,0,0,.2);
+  }
 }
