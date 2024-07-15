@@ -4,6 +4,7 @@ import { Discussion } from './discussion';
 import { Vote } from './vote';
 
 export interface GameState {
+  curActionTime: number;
   logs: string;
   players: Player[];
   preRoles: Role[];

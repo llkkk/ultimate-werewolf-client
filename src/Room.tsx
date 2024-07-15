@@ -11,6 +11,7 @@ import { GameState } from './types/gameState';
 import { useTip } from './globalTip';
 import { Ability } from './types/ability';
 import { Avatar } from './types/avatar';
+import Countdown from './Countdown';
 
 interface GameProps {
   socket: Socket;
@@ -248,6 +249,10 @@ function Game({ socket }: GameProps) {
       setLogs(gameState.logs);
       setPlayers(gameState.players); // 确保玩家状态更新
       console.log('Game state updated', gameState);
+      if(gameState.majorPhase=='夜晚' && gameState.subPhase==players.find(player=>socket.id === player.id)?.initialRole.name)
+        {
+          showTip("您可以开始行动了",2,'top')
+        }
     });
 
     socket.on('actionDenied', ({ message }) => {
@@ -728,11 +733,11 @@ function Game({ socket }: GameProps) {
               <div className={styles.operateBtnn} onClick={resetGame}>
                 重新开始
               </div>
-            ) : (
+            ) : gameState.subPhase === '讨论环节' ?(
               <div className={styles.operateBtnn} onClick={nextPhase}>
                 下一阶段
               </div>
-            )}
+            ):(<></>)}
           </>
         )
       }
@@ -774,7 +779,10 @@ function Game({ socket }: GameProps) {
                   }`}
               >
                 <h6>
-                  当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}
+                  当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`} {
+                    gameState.majorPhase && gameState.majorPhase=='夜晚' &&
+                    <Countdown initialCount={gameState.curActionTime} />
+                  }  
                 </h6>
                 {gameState.subPhase === '讨论环节' &&
                   gameState.discussionInfo && (

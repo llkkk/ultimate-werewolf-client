@@ -182,9 +182,9 @@ p{
   border-width: 0;
   box-sizing: border-box;
   padding: 5px;
-    margin: 1px 30% ;
+    margin: 1px auto ;
     font-size: 7px;
-    width: auto;
+    width: 60px;
   background-color: rgba(226, 232, 240, .8);
   transition-duration: .15s;
   transition-property: color,background-color,border-color,text-decoration-color,fill,stroke;
@@ -343,6 +343,19 @@ h3 {
   white-space: nowrap;
   z-index: 1000;
 }
+.tooltipTop{
+  position: fixed;
+  top: 5%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 1vw 20px;
+  border-radius: 5px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
 .onlineStatus {
   position: absolute;
   top: 75%;
