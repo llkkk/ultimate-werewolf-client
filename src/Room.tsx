@@ -644,7 +644,8 @@ function Game({ socket }: GameProps) {
             )}
             {gameState &&
               gameState.subPhase &&
-              gameState.subPhase === '投票环节' && (
+              gameState.subPhase === '投票环节' &&
+              !gameState.players.find((p) => p.id === socket.id)?.hasVoted && (
                 <div
                   className={styles.playerItemBtn}
                   onClick={() => vote(player.id)}
