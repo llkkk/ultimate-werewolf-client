@@ -249,10 +249,6 @@ function Game({ socket }: GameProps) {
       }
     });
 
-    socket.on('actionDenied', ({ message }) => {
-      showTip(message);
-    });
-
     socket.on('restartGame', (gameState) => {
       setGameState(null);
       setRoles(gameState.preRoles);
@@ -376,8 +372,17 @@ function Game({ socket }: GameProps) {
   };
 
   const nightAction = (action: string, data: object) => {
-    socket.emit('nightAction', { room: roomID, action, data });
-    showTip('操作成功');
+    socket.emit(
+      'nightAction',
+      { room: roomID, action, data },
+      (response: Response) => {
+        if (response.status === 'error') {
+          showTip(response.message);
+        } else {
+          showTip('操作成功');
+        }
+      },
+    );
   };
 
   const nextPhase = () => {
@@ -391,7 +396,11 @@ function Game({ socket }: GameProps) {
       showTip('你已经投过票了,请查看下方游戏日志，并等待其他玩家投票完成');
       return;
     }
-    socket.emit('vote', { room: roomID, targetId });
+    socket.emit('vote', { room: roomID, targetId }, (response: Response) => {
+      if (response.status === 'error') {
+        showTip(response.message);
+      }
+    });
   };
 
   const canPerformAction = () => {
