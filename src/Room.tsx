@@ -21,6 +21,7 @@ function Game({ socket }: GameProps) {
   const navigate = useNavigate();
   const { roomID } = useParams();
   const { showTip } = useTip();
+  const [initialCount, setInitialCount] = useState(10);
 
   const [username, setUsername] = useState(
     localStorage.getItem('username') || '',
@@ -241,6 +242,9 @@ function Game({ socket }: GameProps) {
     socket.on('gameStarted', (gameState) => {
       setGameState(gameState);
       setLogs(gameState.logs);
+      if(gameState.majorPhase=='夜晚'){
+        setInitialCount(gameState.curActionTime)
+      }
       console.log('Game started', gameState);
     });
 
@@ -249,6 +253,9 @@ function Game({ socket }: GameProps) {
       setLogs(gameState.logs);
       setPlayers(gameState.players); // 确保玩家状态更新
       console.log('Game state updated', gameState);
+      if(gameState.majorPhase=='夜晚'){
+        setInitialCount(gameState.curActionTime)
+      }
       if(gameState.majorPhase=='夜晚' && gameState.subPhase==gameState.players.find((player: { id: string | undefined; })=>socket.id === player.id)?.initialRole.name)
         {
           showTip("您可以开始行动了",2,'top')
@@ -781,7 +788,7 @@ function Game({ socket }: GameProps) {
                 <h6>
                   当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`} {
                     gameState.majorPhase && gameState.majorPhase=='夜晚' &&
-                    <Countdown initialCount={gameState.curActionTime} />
+                    <Countdown initialCount={initialCount} />
                   }  
                 </h6>
                 {gameState.subPhase === '讨论环节' &&

@@ -6,19 +6,27 @@ interface CountdownProps {
 
 const Countdown: React.FC<CountdownProps> = ({ initialCount }) => {
   const [count, setCount] = useState(initialCount);
+  const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    setCount(initialCount);
+  }, [initialCount]);
+  useEffect(() => {
     if (count > 0) {
-      const timerId = setTimeout(() => {
+      const newTimerId = setTimeout(() => {
         setCount(count - 1);
       }, 1000);
-
-      return () => {clearTimeout(timerId)
-      };
-    }else{
-      setCount(initialCount)
+      setTimerId(newTimerId);
+    } else {
+      setCount(initialCount);
     }
-  }, [count]);
+
+    return () => {
+      if (timerId) {
+        clearTimeout(timerId);
+      }
+    };
+  }, [count,initialCount]);
 
   return (
         <span >[<span style={{color:'red'}}>{count}秒</span>]</span>
