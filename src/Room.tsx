@@ -9,7 +9,6 @@ import { Player } from './types/player';
 import { Response } from './types/response';
 import { GameState } from './types/gameState';
 import { useTip } from './globalTip';
-import { Ability } from './types/ability';
 import { Avatar } from './types/avatar';
 import Countdown from './Countdown';
 
@@ -53,26 +52,15 @@ function Game({ socket }: GameProps) {
   const avatar_resources_base_url =
     'https://cdn.jsdelivr.net/gh/uchihasasuka/ultimate-werewolf-resource@master/images/avatars/';
 
-  const abilities = {
-    viewHand: { name: '查看手牌', max: 1 },
-    swapHand: { name: '交换手牌', max: 1 },
-    seerViewDeck: { name: '预言家查看底牌', max: 2 },
-    wolfViewDeck: { name: '狼人查看底牌', max: 1 },
-    viewAndSwap: { name: '查看并交换手牌', max: 1 },
-    viewSelfHand: { name: '确认自己手牌', max: 1 },
-    swapSelfHandDeck: { name: '交换手牌和任意一张底牌', max: 1 },
-    viewAndSteal: { name: '查看并交换底牌', max: 1 },
-    lockPlayer: { name: '锁定玩家身份', max: 1 },
-    votePlayer: { name: '票出该玩家则获胜', max: 1 },
-  };
-  //const daySubPhases = ['讨论环节', '投票环节', '结算环节'];
   const nightSubPhases = [
     '爪牙',
     '狼人',
     '狼先知',
+    '阿尔法狼',
     '守夜人',
     '诅咒者',
     '预言家',
+    '见习预言家',
     '哨兵',
     '强盗',
     '女巫',
@@ -129,7 +117,8 @@ function Game({ socket }: GameProps) {
   const [logs, setLogs] = useState<{
     [socketId: string]: { [type: string]: string[] };
   }>({});
-  const [swapTargets, setSwapTargets] = useState<string[]>([]);
+  //const [swapTargets, setSwapTargets] = useState<string[]>([]);
+  const [tempTargets, setTempTargets] = useState<object[]>([]);
   const [isVisible, setIsVisible] = useState(true);
   const [isDivVisible, setIsDivVisible] = useState(true);
 
@@ -351,13 +340,13 @@ function Game({ socket }: GameProps) {
     if (gameState) {
       if (!gameState.started) {
         // 游戏未开始，换头像或踢人
-        removePlayer(index)
+        removePlayer(index);
       } else if (gameState.majorPhase === '夜晚') {
         // 夜晚发动能力
         handleCardClick(player);
       } else if (gameState.subPhase === '投票环节') {
         // 投票阶段投票
-        vote(player.id)
+        vote(player.id);
       }
     }
   };
@@ -372,7 +361,7 @@ function Game({ socket }: GameProps) {
       // 房主踢人
       socket.emit('removePlayer', { room: roomID, index });
     }
-  }
+  };
 
   const leaveRoom = () => {
     socket.emit('leaveRoom', { room: roomID, username });
@@ -389,8 +378,17 @@ function Game({ socket }: GameProps) {
   };
 
   const nightAction = (action: string, data: object) => {
-    socket.emit('nightAction', { room: roomID, action, data });
-    showTip("操作成功");
+    socket.emit(
+      'nightAction',
+      { room: roomID, action, data },
+      (response: Response) => {
+        if (response.status === 'error') {
+          showTip(response.message);
+        } else {
+          showTip('操作成功');
+        }
+      },
+    );
   };
 
   const nextPhase = () => {
@@ -404,75 +402,72 @@ function Game({ socket }: GameProps) {
       showTip('你已经投过票了,请查看下方游戏日志，并等待其他玩家投票完成');
       return;
     }
-    socket.emit('vote', { room: roomID, targetId });
+    socket.emit('vote', { room: roomID, targetId }, (response: Response) => {
+      if (response.status === 'error') {
+        showTip(response.message);
+      }
+    });
   };
 
-  const canPerformAction = (ability: Ability) => {
+  const canPerformAction = () => {
     const currentPlayer = gameState?.players.find((p) => p.id === socket.id);
     return (
       currentPlayer &&
       currentPlayer.initialRole &&
       currentPlayer.initialRole.name === gameState?.subPhase &&
-      currentPlayer.initialRole.abilities.some(
-        (a) => a.name === ability.name && a.max > 0,
-      )
+      currentPlayer.initialRole.abilities.some((a) => a.max > 0 && a.opType)
     );
   };
 
-  const handleCardClick = (player: Player) => {
-    if (player.id === socket.id) return;
-    if (canPerformAction(abilities.viewHand)) {
-      nightAction(abilities.viewHand.name, { target1: { id: player.id } });
-    } else if (canPerformAction(abilities.swapHand)) {
-      if (swapTargets.length === 0) {
-        setSwapTargets([player.id]);
-      } else if (swapTargets.length === 1) {
-        if (player.id !== swapTargets[0]) {
-          setSwapTargets([...swapTargets, player.id]);
-          nightAction(abilities.swapHand.name, {
-            target1: { type: 'player', id: swapTargets[0] },
-            target2: { type: 'player', id: player.id },
-          });
-          setSwapTargets([]);
+  const handleNightAcntionClick = (
+    typeName: string,
+    index: number,
+    playerName: string,
+  ) => {
+    const currentPlayer = gameState?.players.find((p) => p.id === socket.id);
+    if (currentPlayer) {
+      currentPlayer.initialRole.abilities.some((ability) => {
+        if (ability.opType) {
+          const idx = ability.opType.indexOf(typeName);
+          console.log('女巫交换', ability.opType, tempTargets, idx);
+          if (idx != -1 && tempTargets.length == idx) {
+            if (idx == 0) {
+              tempTargets.push({
+                type: typeName,
+                name: index === -1 ? playerName : index,
+              });
+            } else {
+              tempTargets.push({
+                type: typeName,
+                name: index === -1 ? playerName : index,
+              });
+            }
+            if (tempTargets.length == ability.opType.length) {
+              const data = {
+                target1: tempTargets[0],
+                target2: tempTargets.length > 1 ? tempTargets[1] : null,
+              };
+              console.log('女巫交换2', tempTargets);
+              nightAction(ability.name, data);
+              setTempTargets([]);
+              return true;
+            }
+          }
         }
-      }
-    } else if (canPerformAction(abilities.viewAndSwap)) {
-      const currentPlayer = gameState?.players.find((p) => p.id === socket.id);
-      nightAction(abilities.viewAndSwap.name, {
-        target1: { type: 'player', id: player.id },
-        target2: { type: 'player', id: currentPlayer?.id },
-      });
-    } else if (canPerformAction(abilities.votePlayer)) {
-      nightAction(abilities.votePlayer.name, {
-        target1: { type: 'player', id: player.id },
-      });
-    } else if (canPerformAction(abilities.lockPlayer)) {
-      nightAction(abilities.lockPlayer.name, {
-        target1: { type: 'player', id: player.id },
       });
     }
   };
 
+  const handleCardClick = (player: Player) => {
+    if (player.id === socket.id) return;
+    if (canPerformAction()) {
+      handleNightAcntionClick('player', -1, player.username);
+    }
+  };
+
   const handleDeckClick = (index: number) => {
-    if (canPerformAction(abilities.seerViewDeck)) {
-      nightAction(abilities.seerViewDeck.name, {
-        target1: { type: 'deck', id: index },
-      });
-    } else if (canPerformAction(abilities.wolfViewDeck)) {
-      nightAction(abilities.wolfViewDeck.name, {
-        target1: { type: 'deck', id: index },
-      });
-    } else if (canPerformAction(abilities.swapSelfHandDeck)) {
-      nightAction(abilities.swapSelfHandDeck.name, {
-        target1: { type: 'player', id: socket.id },
-        target2: { type: 'deck', id: index },
-      });
-    } else if (canPerformAction(abilities.viewAndSteal)) {
-      const currentPlayer = gameState?.players.find((p) => p.id === socket.id);
-      nightAction(abilities.viewAndSteal.name, {
-        target1: { type: 'deck', id: index },
-        target2: { type: 'player', id: currentPlayer?.id },
-      });
+    if (canPerformAction()) {
+      handleNightAcntionClick('deck', index, '');
     }
   };
 
@@ -493,7 +488,7 @@ function Game({ socket }: GameProps) {
       .filter((role) => role.count > 0)
       .map((role, index) => (
         <div key={index} className={styles.gameRoleItem}>
-          <img src={role.img}  />
+          <img src={role.img} />
           <div
             className={styles.gameInfoIcon}
             onClick={(e) => handleInfoClick(e, role.description)}
@@ -603,8 +598,8 @@ function Game({ socket }: GameProps) {
                     gameState && gameState.subPhase === '结算环节'
                       ? role_resources_base_url + player.role.img
                       : player.avatar && player.avatar.img
-                        ? player.avatar.img
-                        : userAvatar?.img
+                      ? player.avatar.img
+                      : userAvatar?.img
                   }
                 />
               }
@@ -652,132 +647,139 @@ function Game({ socket }: GameProps) {
               ></span>
             </div>
 
-            <span className={styles.username} style={{ color: '#666', fontWeight: 'bold' }}>{player.username}</span>
-
+            <span
+              className={styles.username}
+              style={{ color: '#666', fontWeight: 'bold' }}
+            >
+              {player.username}
+            </span>
           </div>
         ))}
       </div>
 
-      {
-        showAvatarSelector && (
-          <div className={styles.avatarPickerOverlay}>
-            <div className={styles.avatarPicker}>
-              {avatars.map((avatar) => (
-                <img
-                  key={avatar.name}
-                  src={avatar.img}
-                  onClick={() => pickAvatar(avatar)}
-                  className={styles.avatarImage}
-                />
-              ))}
-              <button
-                onClick={() => setShowAvatarSelector(false)}
-                className={styles.cancelButton}
+      {showAvatarSelector && (
+        <div className={styles.avatarPickerOverlay}>
+          <div className={styles.avatarPicker}>
+            {avatars.map((avatar) => (
+              <img
+                key={avatar.name}
+                src={avatar.img}
+                onClick={() => pickAvatar(avatar)}
+                className={styles.avatarImage}
+              />
+            ))}
+            <button
+              onClick={() => setShowAvatarSelector(false)}
+              className={styles.cancelButton}
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      )}
+
+      {(!gameState || !gameState.started) && (
+        <>
+          <h6>
+            角色列表（
+            <span
+              style={{
+                color:
+                  roles.reduce((sum, role) => sum + role.count, 0) >
+                  players.length + 3
+                    ? 'red'
+                    : 'black',
+              }}
+            >
+              {roles.reduce((sum, role) => sum + role.count, 0)}
+            </span>
+            /{players.length + 3}）
+          </h6>
+          <div className={styles.roleGrid}>
+            {roles.map((role, index) => (
+              <div
+                key={index}
+                className={styles.roleItem}
+                onClick={() => handleRoleClick(index)}
               >
-                取消
-              </button>
+                <img src={role_resources_base_url + role.img} />
+                <div
+                  className={styles.infoIcon}
+                  onClick={(e) => handleInfoClick(e, role.description)}
+                  onMouseLeave={handleInfoLeave}
+                >
+                  ?
+                </div>
+                <div className={styles.roleCount}>
+                  {role.name}: {role.count}
+                </div>
+              </div>
+            ))}
+            {tooltip.visible && (
+              <div className={styles.tooltip}>{tooltip.content}</div>
+            )}
+          </div>
+        </>
+      )}
+
+      {isHost && (
+        <>
+          {!gameState || !gameState.started ? (
+            <div className={styles.operateBtnn} onClick={startGame}>
+              开始游戏
+            </div>
+          ) : gameState.subPhase === '结算环节' ? (
+            <div className={styles.operateBtnn} onClick={resetGame}>
+              重新开始
+            </div>
+          ) : gameState.majorPhase === '白天' ? (
+            <div className={styles.operateBtnn} onClick={nextPhase}>
+              下一阶段
+            </div>
+          ) : (
+            <></>
+          )}
+        </>
+      )}
+
+      {gameState && gameState.started && (
+        <>
+          <div className={styles.ownCard}>
+            {isVisible && (
+              <img
+                className={styles.ownCardImg}
+                src={`${role_resources_base_url}${
+                  gameState.players.find((p) => p.id === socket.id)?.initialRole
+                    .img
+                }`}
+              />
+            )}
+            {!isVisible && (
+              <img
+                className={styles.ownCardback}
+                src={`${role_resources_base_url}/cardback.png`}
+              />
+            )}
+            <div className={styles.roleCount}>
+              {isVisible
+                ? gameState.players.find((p) => p.id === socket.id)?.initialRole
+                    .name
+                : ''}
             </div>
           </div>
-        )
-      }
-
-      {
-        (!gameState || !gameState.started) && (
-          <>
-            <h6>
-              角色列表（
-              <span
-                style={{
-                  color:
-                    roles.reduce((sum, role) => sum + role.count, 0) >
-                      players.length + 3
-                      ? 'red'
-                      : 'black',
-                }}
-              >
-                {roles.reduce((sum, role) => sum + role.count, 0)}
-              </span>
-              /{players.length + 3}）
-            </h6>
-            <div className={styles.roleGrid}>
-              {roles.map((role, index) => (
-                <div
-                  key={index}
-                  className={styles.roleItem}
-                  onClick={() => handleRoleClick(index)}
-                >
-                  <img
-                    src={role_resources_base_url + role.img}
-                  />
-                  <div
-                    className={styles.infoIcon}
-                    onClick={(e) => handleInfoClick(e, role.description)}
-                    onMouseLeave={handleInfoLeave}
-                  >
-                    ?
-                  </div>
-                  <div className={styles.roleCount}>
-                    {role.name}: {role.count}
-                  </div>
-                </div>
-              ))}
-              {tooltip.visible && (
-                <div className={styles.tooltip}>{tooltip.content}</div>
-              )}
-            </div>
-          </>
-        )
-      }
-
-      {
-        isHost && (
-          <>
-            {!gameState || !gameState.started ? (
-              <div className={styles.operateBtnn} onClick={startGame}>
-                开始游戏
-              </div>
-            ) : gameState.subPhase === '结算环节' ? (
-              <div className={styles.operateBtnn} onClick={resetGame}>
-                重新开始
-              </div>
-            ) : gameState.subPhase === '讨论环节' ?(
-              <div className={styles.operateBtnn} onClick={nextPhase}>
-                下一阶段
-              </div>
-            ):(<></>)}
-          </>
-        )
-      }
-
-      {
-        gameState && gameState.started && (
-          <>
-            <div className={styles.ownCard}>
-              {isVisible && (
-                <img
-                  className={styles.ownCardImg}
-                  src={`${role_resources_base_url}${gameState.players.find((p) => p.id === socket.id)?.initialRole
-                    .img
-                    }`}
-                />
-              )}
-              {!isVisible && (
-                <img
-                  className={styles.ownCardback}
-                  src={`${role_resources_base_url}/cardback.png`}
-                />
-              )}
-              <div className={styles.roleCount}>
-                {isVisible
-                  ? gameState.players.find((p) => p.id === socket.id)?.initialRole
-                    .name
-                  : ''}
-              </div>
-            </div>
+          <div
+            className={styles.hideCurrentRole}
+            onClick={() => toggleVisibility()}
+          >
+            {isVisible ? '隐藏当前身份' : '显示当前身份'}
+          </div>
+          {isDivVisible && (
             <div
-              className={styles.hideCurrentRole}
-              onClick={() => toggleVisibility()}
+              className={`${styles.hiddenItem} ${
+                isVisible ? styles.shown : styles.hidden
+              }`}
             >
+<<<<<<< HEAD
               {isVisible ? '隐藏当前身份' : '显示当前身份'}
             </div>
             {isDivVisible && (
@@ -801,13 +803,31 @@ function Game({ socket }: GameProps) {
                           开始，按 {gameState.discussionInfo.direction} 顺序发言。
                         </p>
                       </div>
+=======
+              <h6>
+                当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}{' '}
+                {gameState.majorPhase && gameState.majorPhase == '夜晚' && (
+                  <Countdown initialCount={gameState.curActionTime} />
+                )}
+              </h6>
+              {gameState.subPhase === '讨论环节' &&
+                gameState.discussionInfo && (
+                  <div className={styles.currentPhase}>
+                    <div className={styles.discussionInfo}>
+                      <p>
+                        从玩家{gameState.discussionInfo.index + 1}-
+                        {gameState.discussionInfo.startingPlayer.username}{' '}
+                        开始，按 {gameState.discussionInfo.direction} 顺序发言。
+                      </p>
+>>>>>>> 9f223aad0ed80300bf1fe29fed55a0f9e2abcdd9
                     </div>
-                  )}
-                <h6>游戏日志</h6>
-                <div className={styles.logs}>
-                  <div>
-                    {gameState.subPhase !== '结算环节'
-                      ? socket.id &&
+                  </div>
+                )}
+              <h6>游戏日志</h6>
+              <div className={styles.logs}>
+                <div>
+                  {gameState.subPhase !== '结算环节'
+                    ? socket.id &&
                       (() => {
                         const player = gameState.players.find(
                           (p) => p.id === socket.id,
@@ -824,7 +844,7 @@ function Game({ socket }: GameProps) {
                           );
                         }
                       })()
-                      : Object.keys(logs).map(
+                    : Object.keys(logs).map(
                         (username) =>
                           logs[username]['2'] &&
                           logs[username]['2'].map((log, idx) => (
@@ -833,70 +853,67 @@ function Game({ socket }: GameProps) {
                             </p>
                           )),
                       )}
-                  </div>
                 </div>
               </div>
-            )}
-            {gameState.subPhase === '结算环节' && (
-              <>
-                <h6>投票结果</h6>
-                <div className={styles.voteResults}>
-                  {gameState.winner && (
-                    <p style={{ color: 'red', fontWeight: 'bold' }}>
-                      {gameState.winner}
-                    </p>
-                  )}
-                  {gameState.voteResults && gameState.voteResults.length > 0 && (
-                    <ul>
-                      {gameState.voteResults.map((vote, index) => (
-                        <li key={index}>
-                          玩家
-                          {players.findIndex(
+            </div>
+          )}
+          {gameState.subPhase === '结算环节' && (
+            <>
+              <h6>投票结果</h6>
+              <div className={styles.voteResults}>
+                {gameState.winner && (
+                  <p style={{ color: 'red', fontWeight: 'bold' }}>
+                    {gameState.winner}
+                  </p>
+                )}
+                {gameState.voteResults && gameState.voteResults.length > 0 && (
+                  <ul>
+                    {gameState.voteResults.map((vote, index) => (
+                      <li key={index}>
+                        玩家
+                        {players.findIndex(
+                          (p) => p.username === vote.playerName,
+                        ) + 1}
+                        -
+                        {players.find((p) => p.username === vote.playerName) &&
+                          players.find((p) => p.username === vote.playerName)
+                            ?.username}{' '}
+                        （
+                        {(() => {
+                          const player = gameState.players.find(
                             (p) => p.username === vote.playerName,
-                          ) + 1}
-                          -
-                          {players.find((p) => p.username === vote.playerName) &&
-                            players.find((p) => p.username === vote.playerName)
-                              ?.username}{' '}
-                          （
-                          {(() => {
-                            const player = gameState.players.find(
-                              (p) => p.username === vote.playerName,
-                            );
-                            if (!player) return null;
-                            return (
-                              <span>
-                                {player.initialRole.name} -&gt; {player.role.name}
-                              </span>
-                            );
-                          })()}
-                          ） 投票给 玩家
-                          {players.findIndex(
-                            (p) => p.username === vote.targetName,
-                          ) + 1}
-                          -
-                          {players.find((p) => p.username === vote.targetName) &&
-                            players.find((p) => p.username === vote.targetName)
-                              ?.username}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </>
-            )}
-          </>
-        )
-      }
+                          );
+                          if (!player) return null;
+                          return (
+                            <span>
+                              {player.initialRole.name} -&gt; {player.role.name}
+                            </span>
+                          );
+                        })()}
+                        ） 投票给 玩家
+                        {players.findIndex(
+                          (p) => p.username === vote.targetName,
+                        ) + 1}
+                        -
+                        {players.find((p) => p.username === vote.targetName) &&
+                          players.find((p) => p.username === vote.targetName)
+                            ?.username}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
+          )}
+        </>
+      )}
 
-      {
-        (!gameState || !gameState.started) && (
-          <div className={styles.operateBtnn} onClick={leaveRoom}>
-            离开房间
-          </div>
-        )
-      }
-    </div >
+      {(!gameState || !gameState.started) && (
+        <div className={styles.operateBtnn} onClick={leaveRoom}>
+          离开房间
+        </div>
+      )}
+    </div>
   );
 }
 
