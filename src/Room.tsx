@@ -779,35 +779,10 @@ function Game({ socket }: GameProps) {
                 isVisible ? styles.shown : styles.hidden
               }`}
             >
-<<<<<<< HEAD
-              {isVisible ? '隐藏当前身份' : '显示当前身份'}
-            </div>
-            {isDivVisible && (
-              <div
-                className={`${styles.hiddenItem} ${isVisible ? styles.shown : styles.hidden
-                  }`}
-              >
-                <h6>
-                  当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`} {
-                    gameState.majorPhase && gameState.majorPhase=='夜晚' &&
-                    <Countdown initialCount={initialCount} />
-                  }  
-                </h6>
-                {gameState.subPhase === '讨论环节' &&
-                  gameState.discussionInfo && (
-                    <div className={styles.currentPhase}>
-                      <div className={styles.discussionInfo}>
-                        <p>
-                          从玩家{gameState.discussionInfo.index + 1}-
-                          {gameState.discussionInfo.startingPlayer.username}{' '}
-                          开始，按 {gameState.discussionInfo.direction} 顺序发言。
-                        </p>
-                      </div>
-=======
               <h6>
                 当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}{' '}
                 {gameState.majorPhase && gameState.majorPhase == '夜晚' && (
-                  <Countdown initialCount={gameState.curActionTime} />
+                  <Countdown initialCount={initialCount} />
                 )}
               </h6>
               {gameState.subPhase === '讨论环节' &&
@@ -819,7 +794,6 @@ function Game({ socket }: GameProps) {
                         {gameState.discussionInfo.startingPlayer.username}{' '}
                         开始，按 {gameState.discussionInfo.direction} 顺序发言。
                       </p>
->>>>>>> 9f223aad0ed80300bf1fe29fed55a0f9e2abcdd9
                     </div>
                   </div>
                 )}
