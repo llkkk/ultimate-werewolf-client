@@ -28,7 +28,9 @@ function Game({ socket }: GameProps) {
   const [userAvatar, setUserAvatar] = useState<Avatar | null>(null);
 
   const [players, setPlayers] = useState<Player[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
+  const [roles, setRoles] = useState<Role[]>(
+    JSON.parse(localStorage.getItem('roles') || '[]'),
+  );
   const [gameState, setGameState] = useState<GameState | null>(null);
 
   // 用户头像相关
@@ -231,8 +233,8 @@ function Game({ socket }: GameProps) {
     socket.on('gameStarted', (gameState) => {
       setGameState(gameState);
       setLogs(gameState.logs);
-      if(gameState.majorPhase=='夜晚'){
-        setInitialCount(gameState.curActionTime)
+      if (gameState.majorPhase == '夜晚') {
+        setInitialCount(gameState.curActionTime);
       }
       console.log('Game started', gameState);
     });
@@ -242,13 +244,18 @@ function Game({ socket }: GameProps) {
       setLogs(gameState.logs);
       setPlayers(gameState.players); // 确保玩家状态更新
       console.log('Game state updated', gameState);
-      if(gameState.majorPhase=='夜晚'){
-        setInitialCount(gameState.curActionTime)
+      if (gameState.majorPhase == '夜晚') {
+        setInitialCount(gameState.curActionTime);
       }
-      if(gameState.majorPhase=='夜晚' && gameState.subPhase==gameState.players.find((player: { id: string | undefined; })=>socket.id === player.id)?.initialRole.name)
-        {
-          showTip("您可以开始行动了",2,'top')
-        }
+      if (
+        gameState.majorPhase == '夜晚' &&
+        gameState.subPhase ==
+          gameState.players.find(
+            (player: { id: string | undefined }) => socket.id === player.id,
+          )?.initialRole.name
+      ) {
+        showTip('您可以开始行动了', 2, 'top');
+      }
     });
 
     socket.on('actionDenied', ({ message }) => {
@@ -373,6 +380,8 @@ function Game({ socket }: GameProps) {
     socket.emit('startGame', { room: roomID }, (response: Response) => {
       if (response.status === 'error') {
         showTip(response.message);
+      } else {
+        localStorage.setItem('roles', JSON.stringify(response.roles)); // 更新角色配置到本地
       }
     });
   };
@@ -484,23 +493,26 @@ function Game({ socket }: GameProps) {
   };
 
   const renderGameConfig = () => {
-    return roles
-      .filter((role) => role.count > 0)
-      .map((role, index) => (
-        <div key={index} className={styles.gameRoleItem}>
-          <img src={role.img} />
-          <div
-            className={styles.gameInfoIcon}
-            onClick={(e) => handleInfoClick(e, role.description)}
-            onMouseLeave={handleInfoLeave}
-          >
-            ?
+    return (
+      roles &&
+      roles
+        .filter((role) => role.count > 0)
+        .map((role, index) => (
+          <div key={index} className={styles.gameRoleItem}>
+            <img src={role.img} />
+            <div
+              className={styles.gameInfoIcon}
+              onClick={(e) => handleInfoClick(e, role.description)}
+              onMouseLeave={handleInfoLeave}
+            >
+              ?
+            </div>
+            <div className={styles.gameInfoName}>
+              {role.name}:{role.count}
+            </div>
           </div>
-          <div className={styles.gameInfoName}>
-            {role.name}:{role.count}
-          </div>
-        </div>
-      ));
+        ))
+    );
   };
 
   const resetGame = () => {
