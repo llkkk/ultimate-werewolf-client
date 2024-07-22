@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
-import styles from './App.module.css';
+import styles from './App.module.css'; // 确保导入了 CSS Modules 文件
+
 import saveRoomToLocalStorage from './utils';
 import { Role } from './types/role';
 import { Player } from './types/player';
@@ -9,13 +10,7 @@ import { Response } from './types/response';
 import { GameState } from './types/gameState';
 import { useTip } from './globalTip';
 import { Avatar } from './types/avatar';
-import AvatarSelector from './room/AvatarSelector';
-import RoleConfig from './room/RoleConfig';
-import PlayerList from './room/PlayerList';
-import GameControls from './room/GameControls';
-import GameLogs from './room/GameLogs';
-import GamePhaseDisplay from './room/GamePhaseDisplay';
-import DeckDisplay from './room/DeckDisplay';
+import Countdown from './Countdown';
 
 interface GameProps {
   socket: Socket;
@@ -25,12 +20,12 @@ function Game({ socket }: GameProps) {
   const navigate = useNavigate();
   const { roomID } = useParams();
   const { showTip } = useTip();
-  const [, setInitialCount] = useState(10);
+  const [initialCount, setInitialCount] = useState(10);
 
   const [username, setUsername] = useState(
     localStorage.getItem('username') || '',
   );
-  const [, setUserAvatar] = useState<Avatar | null>(null);
+  const [userAvatar, setUserAvatar] = useState<Avatar | null>(null);
 
   const [players, setPlayers] = useState<Player[]>([]);
   const [roles, setRoles] = useState<Role[]>(
@@ -38,6 +33,7 @@ function Game({ socket }: GameProps) {
   );
   const [gameState, setGameState] = useState<GameState | null>(null);
 
+  // 用户头像相关
   const [avatars, setAvatars] = useState<Avatar[]>(
     localStorage.getItem('avatars')
       ? JSON.parse(localStorage.getItem('avatars')!)
@@ -46,10 +42,15 @@ function Game({ socket }: GameProps) {
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
+  // 角色图片基础地址
   const role_resources_base_url =
     'https://cdn.jsdelivr.net/gh/uchihasasuka/ultimate-werewolf-resource@master/images/roles';
+
+  // 获取头像图片列表地址
   const avatar_resources_list_url =
     'https://api.github.com/repos/UchihaSasuka/ultimate-werewolf-resource/contents/images/avatars';
+
+  // 头像图片基础地址
   const avatar_resources_base_url =
     'https://cdn.jsdelivr.net/gh/uchihasasuka/ultimate-werewolf-resource@master/images/avatars/';
 
@@ -82,6 +83,7 @@ function Game({ socket }: GameProps) {
     setExistingRoles(updatedExistingRoles);
 
     if (avatars.length === 0) {
+      // 初始化头像图片
       const fetchAvatars = async () => {
         const response = await fetch(avatar_resources_list_url);
         const data = await response.json();
@@ -96,11 +98,14 @@ function Game({ socket }: GameProps) {
       fetchAvatars();
     }
 
+    //获取缓存的用户头像
     const storedAvatar = localStorage.getItem('userAvatar');
+
     if (storedAvatar) {
       try {
         const parsedAvatar: Avatar = JSON.parse(storedAvatar);
         setUserAvatar(parsedAvatar);
+        console.log(parsedAvatar);
       } catch (error) {
         console.error('Failed to parse userAvatar from localStorage', error);
       }
@@ -114,37 +119,49 @@ function Game({ socket }: GameProps) {
   const [logs, setLogs] = useState<{
     [socketId: string]: { [type: string]: string[] };
   }>({});
+  //const [swapTargets, setSwapTargets] = useState<string[]>([]);
   const [tempTargets, setTempTargets] = useState<object[]>([]);
   const [isVisible, setIsVisible] = useState(true);
   const [isDivVisible, setIsDivVisible] = useState(true);
 
+  // 点击事件处理函数
   const toggleVisibility = () => {
     setIsVisible(!isVisible);
     const timer = setTimeout(() => {
+      // 1秒后执行的方法
       setIsDivVisible(!isDivVisible);
     }, 1000);
+
+    // 清除定时器，防止内存泄漏
     return () => clearTimeout(timer);
   };
 
   const generateRandomPlayerName = () => {
     const characters = 'abcdefghijklmnopqrstuvwxyz';
     const numbers = '0123456789';
+
+    // 生成随机的两个字母
     let randomLetters = '';
     for (let i = 0; i < 2; i++) {
       randomLetters += characters.charAt(
         Math.floor(Math.random() * characters.length),
       );
     }
+
+    // 生成随机的两个数字
     let randomNumbers = '';
     for (let i = 0; i < 2; i++) {
       randomNumbers += numbers.charAt(
         Math.floor(Math.random() * numbers.length),
       );
     }
+
+    // 组合成最终的玩家名
     const randomPlayerName = `玩家${randomLetters}${randomNumbers}`;
     return randomPlayerName;
   };
 
+  // 更换用户头像
   const pickAvatar = (avatar: Avatar) => {
     if (selectedPlayer) {
       const currentPlayer = gameState?.players.find((p) => p.id === socket.id);
@@ -154,6 +171,7 @@ function Game({ socket }: GameProps) {
       selectedPlayer.avatar = avatar;
       setShowAvatarSelector(false);
       setSelectedPlayer(null);
+      // localStorage.setItem('userAvatar', JSON.stringify(avatar));
       socket.emit('updatePlayer', {
         room: roomID,
         player: currentPlayer,
@@ -174,9 +192,10 @@ function Game({ socket }: GameProps) {
         { room: roomID, username },
         (response: Response) => {
           if (response.status === 'ok') {
-            localStorage.setItem('roles', JSON.stringify(response.roles));
-            localStorage.setItem('players', JSON.stringify(response.players));
-            localStorage.setItem('host', response.host);
+            localStorage.setItem('roles', JSON.stringify(response.roles)); // 保存角色配置
+            localStorage.setItem('players', JSON.stringify(response.players)); // 保存玩家信息
+            localStorage.setItem('host', response.host); // 保存房主信息
+            //TODO头像本地有保存，直接取本地更新远端
             saveRoomToLocalStorage(roomID);
             setPlayers(response.players || []);
             setRoles(response.roles || roles);
@@ -192,10 +211,12 @@ function Game({ socket }: GameProps) {
 
     socket.on('updatePlayers', (players) => {
       setPlayers(players || []);
+      console.log('Updated players:', players);
     });
 
     socket.on('updateRoles', (roles) => {
       setRoles(roles || []);
+      console.log('Updated roles:', roles);
     });
 
     socket.on('updateHost', (host) => {
@@ -215,12 +236,14 @@ function Game({ socket }: GameProps) {
       if (gameState.majorPhase == '夜晚') {
         setInitialCount(gameState.curActionTime);
       }
+      console.log('Game started', gameState);
     });
 
     socket.on('updateGameState', (gameState) => {
       setGameState(gameState);
       setLogs(gameState.logs);
-      setPlayers(gameState.players);
+      setPlayers(gameState.players); // 确保玩家状态更新
+      console.log('Game state updated', gameState);
       if (gameState.majorPhase == '夜晚') {
         setInitialCount(gameState.curActionTime);
       }
@@ -242,7 +265,8 @@ function Game({ socket }: GameProps) {
     socket.on('restartGame', (gameState) => {
       setGameState(null);
       setRoles(gameState.preRoles);
-      setPlayers(gameState.players);
+      setPlayers(gameState.players); // 确保玩家状态更新
+      console.log('Game state restart', gameState);
     });
   }, [socket, roomID, navigate]);
 
@@ -257,6 +281,7 @@ function Game({ socket }: GameProps) {
           console.error('Failed to copy text: ', err);
         });
     } else {
+      // Fallback method using execCommand
       const textArea = document.createElement('textarea');
       textArea.value = window.location.href;
       document.body.appendChild(textArea);
@@ -270,7 +295,7 @@ function Game({ socket }: GameProps) {
       document.body.removeChild(textArea);
     }
   };
-
+  const [tooltip, setTooltip] = useState({ visible: false, content: '' });
   const handleInfoClick = (
     e: React.MouseEvent<HTMLDivElement, MouseEvent>,
     description: string,
@@ -279,6 +304,9 @@ function Game({ socket }: GameProps) {
     showTip(description);
   };
 
+  const handleInfoLeave = () => {
+    setTooltip({ visible: false, content: '' });
+  };
   const handleRoleClick = (index: number) => {
     if (!isHost) return;
     const updatedRoles = roles.map((role, i) => {
@@ -318,21 +346,26 @@ function Game({ socket }: GameProps) {
   const handleAvatarClick = (player: Player, index: number) => {
     if (gameState) {
       if (!gameState.started) {
+        // 游戏未开始，换头像或踢人
         removePlayer(index);
       } else if (gameState.majorPhase === '夜晚') {
+        // 夜晚发动能力
         handleCardClick(player);
       } else if (gameState.subPhase === '投票环节') {
+        // 投票阶段投票
         vote(player.id);
       }
     }
   };
 
   const removePlayer = (index: number) => {
+    // 先判断是否是自己 是自己统一走换头像的逻辑
     if (socket.id == players[index].id) {
       const player = players[index];
       setSelectedPlayer(player);
       setShowAvatarSelector(true);
     } else if (isHost) {
+      // 房主踢人
       socket.emit('removePlayer', { room: roomID, index });
     }
   };
@@ -348,7 +381,7 @@ function Game({ socket }: GameProps) {
       if (response.status === 'error') {
         showTip(response.message);
       } else {
-        localStorage.setItem('roles', JSON.stringify(response.roles));
+        localStorage.setItem('roles', JSON.stringify(response.roles)); // 更新角色配置到本地
       }
     });
   };
@@ -374,6 +407,7 @@ function Game({ socket }: GameProps) {
 
   const vote = (targetId: string) => {
     if (gameState?.players.find((p) => p.id === socket.id)?.hasVoted) {
+      // 玩家已经投过票了
       showTip('你已经投过票了,请查看下方游戏日志，并等待其他玩家投票完成');
       return;
     }
@@ -404,6 +438,7 @@ function Game({ socket }: GameProps) {
       currentPlayer.initialRole.abilities.some((ability) => {
         if (ability.opType) {
           const idx = ability.opType.indexOf(typeName);
+          console.log('女巫交换', ability.opType, tempTargets, idx);
           if (idx != -1 && tempTargets.length == idx) {
             if (idx == 0) {
               tempTargets.push({
@@ -421,6 +456,7 @@ function Game({ socket }: GameProps) {
                 target1: tempTargets[0],
                 target2: tempTargets.length > 1 ? tempTargets[1] : null,
               };
+              console.log('女巫交换2', tempTargets);
               nightAction(ability.name, data);
               setTempTargets([]);
               return true;
@@ -442,6 +478,41 @@ function Game({ socket }: GameProps) {
     if (canPerformAction()) {
       handleNightAcntionClick('deck', index, '');
     }
+  };
+
+  const getLogMessage = (log: string, username: string | undefined) => {
+    const index = gameState
+      ? gameState.players.findIndex((p) => p.username === username) + 1
+      : 0;
+    const currentPlayer = gameState?.players.find(
+      (p) => p.username === username,
+    );
+    return currentPlayer && currentPlayer.initialRole
+      ? `玩家${index}-${currentPlayer.username}(${currentPlayer.initialRole.name})：${log}`
+      : `未知角色：${log}`;
+  };
+
+  const renderGameConfig = () => {
+    return (
+      roles &&
+      roles
+        .filter((role) => role.count > 0)
+        .map((role, index) => (
+          <div key={index} className={styles.gameRoleItem}>
+            <img src={role.img} />
+            <div
+              className={styles.gameInfoIcon}
+              onClick={(e) => handleInfoClick(e, role.description)}
+              onMouseLeave={handleInfoLeave}
+            >
+              ?
+            </div>
+            <div className={styles.gameInfoName}>
+              {role.name}:{role.count}
+            </div>
+          </div>
+        ))
+    );
   };
 
   const resetGame = () => {
@@ -469,25 +540,7 @@ function Game({ socket }: GameProps) {
       {gameState && gameState.started && (
         <>
           <h6>本局游戏配置</h6>
-          <div className={styles.gameRole}>
-            {roles
-              .filter((role) => role.count > 0)
-              .map((role, index) => (
-                <div key={index} className={styles.gameRoleItem}>
-                  <img src={role.img} />
-                  <div
-                    className={styles.gameInfoIcon}
-                    onClick={(e) => handleInfoClick(e, role.description)}
-                    onMouseLeave={() => {}}
-                  >
-                    ?
-                  </div>
-                  <div className={styles.gameInfoName}>
-                    {role.name}:{role.count}
-                  </div>
-                </div>
-              ))}
-          </div>
+          <div className={styles.gameRole}>{renderGameConfig()}</div>
           <h6>行动顺序</h6>
           <div className={styles.moveRange}>
             {existingRoles.map((phase, index) => (
@@ -509,29 +562,134 @@ function Game({ socket }: GameProps) {
       {gameState && gameState.started && (
         <>
           <h6>底牌</h6>
-          <DeckDisplay
-            leftoverCards={gameState.leftoverCards}
-            subPhase={gameState.subPhase}
-            onDeckClick={handleDeckClick}
-          />
+          <div className={styles.deckGrid}>
+            {gameState.leftoverCards.map((role, index) => (
+              <>
+                {gameState.subPhase !== '结算环节' && (
+                  <img
+                    key={index}
+                    src={role_resources_base_url + '/cardback.png'}
+                    title={`底牌 ${index + 1}`}
+                    onClick={() => handleDeckClick(index)}
+                    className={styles.deckGridBackImg}
+                  />
+                )}
+                {gameState.subPhase === '结算环节' && (
+                  <div className={styles.deckGridItem}>
+                    <img
+                      key={index}
+                      src={role_resources_base_url + role.img}
+                      title={`底牌 ${index + 1}`}
+                      className={styles.deckGridImg}
+                      onClick={() => handleDeckClick(index)}
+                    />
+                    <div className={styles.roleCount}>{role.name}</div>
+                  </div>
+                )}
+              </>
+            ))}
+          </div>
         </>
       )}
       <h6>玩家列表</h6>
-      <PlayerList
-        players={players}
-        host={host}
-        onPlayerClick={handleAvatarClick}
-        onJoinGame={joinGame}
-        isHost={isHost}
-        socketId={socket.id}
-      />
+      <div className={styles.playerGrid}>
+        {players.map((player, index) => (
+          <div key={index}>
+            <div
+              className={styles.playerItem}
+              onClick={
+                player.username === null
+                  ? () => joinGame(index)
+                  : () => handleAvatarClick(player, index)
+              }
+            >
+              {
+                <img
+                  className={styles.ownCardImg}
+                  src={
+                    gameState && gameState.subPhase === '结算环节'
+                      ? role_resources_base_url + player.role.img
+                      : player.avatar && player.avatar.img
+                      ? player.avatar.img
+                      : userAvatar?.img
+                  }
+                />
+              }
+              {host === player.id && (
+                <span
+                  className={styles.roomHolder}
+                  style={{
+                    backgroundColor:
+                      player.id === socket.id ? 'rgb(234 88 12)' : 'black',
+                  }}
+                >
+                  房主
+                </span>
+              )}
+              {(!gameState || !gameState.started) &&
+                isHost &&
+                player.id !== socket.id && (
+                  <span className={styles.removeItem}>×</span>
+                )}
+              {socket.id !== player.id && (
+                <span
+                  className={styles.playerItemIndex}
+                  style={{
+                    backgroundColor:
+                      player.id === socket.id ? 'rgb(234 88 12)' : 'black',
+                  }}
+                >
+                  {index + 1}
+                </span>
+              )}
+              {socket.id === player.id && (
+                <span
+                  className={styles.isMe}
+                  style={{
+                    backgroundColor:
+                      player.id === socket.id ? 'rgb(234 88 12)' : 'black',
+                  }}
+                >
+                  我
+                </span>
+              )}
+              <span
+                className={styles.onlineStatus}
+                style={{ backgroundColor: player.offline ? 'grey' : 'green' }}
+              ></span>
+            </div>
+
+            <span
+              className={styles.username}
+              style={{ color: '#666', fontWeight: 'bold' }}
+            >
+              {player.username}
+            </span>
+          </div>
+        ))}
+      </div>
+
       {showAvatarSelector && (
-        <AvatarSelector
-          avatars={avatars}
-          onSelect={pickAvatar}
-          onCancel={() => setShowAvatarSelector(false)}
-        />
+        <div className={styles.avatarPickerOverlay}>
+          <div className={styles.avatarPicker}>
+            {avatars.map((avatar) => (
+              <img
+                key={avatar.name}
+                src={avatar.img}
+                onClick={() => pickAvatar(avatar)}
+                className={styles.avatarImage}
+              />
+            ))}
+            <button
+              onClick={() => setShowAvatarSelector(false)}
+              className={styles.cancelButton}
+            >
+              取消
+            </button>
+          </div>
+        </div>
       )}
+
       {(!gameState || !gameState.started) && (
         <>
           <h6>
@@ -549,22 +707,53 @@ function Game({ socket }: GameProps) {
             </span>
             /{players.length + 3}）
           </h6>
-          <RoleConfig
-            roles={roles}
-            onRoleClick={handleRoleClick}
-            onInfoClick={handleInfoClick}
-          />
+          <div className={styles.roleGrid}>
+            {roles.map((role, index) => (
+              <div
+                key={index}
+                className={styles.roleItem}
+                onClick={() => handleRoleClick(index)}
+              >
+                <img src={role_resources_base_url + role.img} />
+                <div
+                  className={styles.infoIcon}
+                  onClick={(e) => handleInfoClick(e, role.description)}
+                  onMouseLeave={handleInfoLeave}
+                >
+                  ?
+                </div>
+                <div className={styles.roleCount}>
+                  {role.name}: {role.count}
+                </div>
+              </div>
+            ))}
+            {tooltip.visible && (
+              <div className={styles.tooltip}>{tooltip.content}</div>
+            )}
+          </div>
         </>
       )}
-      <GameControls
-        isHost={isHost}
-        gameStarted={gameState?.started || false}
-        majorPhase={gameState?.majorPhase || ''}
-        subPhase={gameState?.subPhase || ''}
-        onStartGame={startGame}
-        onResetGame={resetGame}
-        onNextPhase={nextPhase}
-      />
+
+      {isHost && (
+        <>
+          {!gameState || !gameState.started ? (
+            <div className={styles.operateBtnn} onClick={startGame}>
+              开始游戏
+            </div>
+          ) : gameState.subPhase === '结算环节' ? (
+            <div className={styles.operateBtnn} onClick={resetGame}>
+              重新开始
+            </div>
+          ) : gameState.majorPhase === '白天' ? (
+            <div className={styles.operateBtnn} onClick={nextPhase}>
+              下一阶段
+            </div>
+          ) : (
+            <></>
+          )}
+        </>
+      )}
+
       {gameState && gameState.started && (
         <>
           <div className={styles.ownCard}>
@@ -602,17 +791,56 @@ function Game({ socket }: GameProps) {
                 isVisible ? styles.shown : styles.hidden
               }`}
             >
-              <GamePhaseDisplay
-                majorPhase={gameState.majorPhase}
-                subPhase={gameState.subPhase}
-                discussionInfo={gameState.discussionInfo}
-              />
+              <h6>
+                当前阶段 {`${gameState.majorPhase} - ${gameState.subPhase}`}{' '}
+                {gameState.majorPhase && gameState.majorPhase == '夜晚' && (
+                  <Countdown initialCount={initialCount} />
+                )}
+              </h6>
+              {gameState.subPhase === '讨论环节' &&
+                gameState.discussionInfo && (
+                  <div className={styles.currentPhase}>
+                    <div className={styles.discussionInfo}>
+                      <p>
+                        从玩家{gameState.discussionInfo.index + 1}-
+                        {gameState.discussionInfo.startingPlayer.username}{' '}
+                        开始，按 {gameState.discussionInfo.direction} 顺序发言。
+                      </p>
+                    </div>
+                  </div>
+                )}
               <h6>游戏日志</h6>
-              <GameLogs
-                logs={logs}
-                players={gameState.players}
-                subPhase={gameState.subPhase}
-              />
+              <div className={styles.logs}>
+                <div>
+                  {gameState.subPhase !== '结算环节'
+                    ? socket.id &&
+                      (() => {
+                        const player = gameState.players.find(
+                          (p) => p.id === socket.id,
+                        );
+                        if (!player) return null;
+                        const username = player.username;
+                        if (logs[username]) {
+                          return Object.keys(logs[username]).map((key) =>
+                            logs[username][key].map((log, idx) => (
+                              <p key={`${key}-${idx}`}>
+                                {getLogMessage(log, username)}
+                              </p>
+                            )),
+                          );
+                        }
+                      })()
+                    : Object.keys(logs).map(
+                        (username) =>
+                          logs[username]['2'] &&
+                          logs[username]['2'].map((log, idx) => (
+                            <p key={`${username}-1-${idx}`}>
+                              {getLogMessage(log, username)}
+                            </p>
+                          )),
+                      )}
+                </div>
+              </div>
             </div>
           )}
           {gameState.subPhase === '结算环节' && (
@@ -665,6 +893,7 @@ function Game({ socket }: GameProps) {
           )}
         </>
       )}
+
       {(!gameState || !gameState.started) && (
         <div className={styles.operateBtnn} onClick={leaveRoom}>
           离开房间
