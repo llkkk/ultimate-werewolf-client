@@ -413,7 +413,7 @@ function Game({ socket }: GameProps) {
       return;
     }
     socket.emit('vote', { room: roomID, targetId }, (response: Response) => {
-      if (response.status === 'error') {
+      if (response) {
         showTip(response.message);
       }
     });
