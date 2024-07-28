@@ -25,7 +25,7 @@ function Game({ socket }: GameProps) {
   const navigate = useNavigate();
   const { roomID } = useParams();
   const { showTip } = useTip();
-  const [, setInitialCount] = useState(10);
+  const [initialCount, setInitialCount] = useState(10);
 
   const [username, setUsername] = useState(
     localStorage.getItem('username') || '',
@@ -56,6 +56,7 @@ function Game({ socket }: GameProps) {
   const nightSubPhases = [
     '爪牙',
     '狼人',
+    '冲锋狼',
     '狼先知',
     '阿尔法狼',
     '守夜人',
@@ -66,7 +67,7 @@ function Game({ socket }: GameProps) {
     '强盗',
     '女巫',
     '捣蛋鬼',
-    '新捣蛋鬼',
+    '小精灵',
     '酒鬼',
     '盗贼',
     '失眠者',
@@ -229,7 +230,7 @@ function Game({ socket }: GameProps) {
         gameState.subPhase ==
           gameState.players.find(
             (player: { id: string | undefined }) => socket.id === player.id,
-          )?.initialRole.name
+          )?.initialRole?.name
       ) {
         showTip('您可以开始行动了', 2, 'top');
       }
@@ -606,9 +607,11 @@ function Game({ socket }: GameProps) {
                 majorPhase={gameState.majorPhase}
                 subPhase={gameState.subPhase}
                 discussionInfo={gameState.discussionInfo}
+                initialCount={initialCount}
               />
               <h6>游戏日志</h6>
               <GameLogs
+                socketId={socket.id}
                 logs={logs}
                 players={gameState.players}
                 subPhase={gameState.subPhase}
