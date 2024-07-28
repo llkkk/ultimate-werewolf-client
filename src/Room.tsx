@@ -57,6 +57,7 @@ function Game({ socket }: GameProps) {
   const nightSubPhases = [
     '爪牙',
     '狼人',
+    '冲锋狼',
     '狼先知',
     '阿尔法狼',
     '守夜人',
@@ -67,7 +68,7 @@ function Game({ socket }: GameProps) {
     '强盗',
     '女巫',
     '捣蛋鬼',
-    '新捣蛋鬼',
+    '小精灵',
     '酒鬼',
     '盗贼',
     '失眠者',
@@ -438,25 +439,16 @@ function Game({ socket }: GameProps) {
       currentPlayer.initialRole.abilities.some((ability) => {
         if (ability.opType) {
           const idx = ability.opType.indexOf(typeName);
-          console.log('女巫交换', ability.opType, tempTargets, idx);
           if (idx != -1 && tempTargets.length == idx) {
-            if (idx == 0) {
-              tempTargets.push({
-                type: typeName,
-                name: index === -1 ? playerName : index,
-              });
-            } else {
-              tempTargets.push({
-                type: typeName,
-                name: index === -1 ? playerName : index,
-              });
-            }
+            tempTargets.push({
+              type: typeName,
+              name: index === -1 ? playerName : index,
+            });
             if (tempTargets.length == ability.opType.length) {
               const data = {
                 target1: tempTargets[0],
                 target2: tempTargets.length > 1 ? tempTargets[1] : null,
               };
-              console.log('女巫交换2', tempTargets);
               nightAction(ability.name, data);
               setTempTargets([]);
               return true;
