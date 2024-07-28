@@ -222,6 +222,7 @@ function Game({ socket }: GameProps) {
       setGameState(gameState);
       setLogs(gameState.logs);
       setPlayers(gameState.players);
+      console.log(gameState)
       if (gameState.majorPhase == '夜晚') {
         setInitialCount(gameState.curActionTime);
       }
