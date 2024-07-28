@@ -249,6 +249,7 @@ function Game({ socket }: GameProps) {
         setInitialCount(gameState.curActionTime);
       }
       if (
+        gameState.started &&
         gameState.majorPhase == '夜晚' &&
         gameState.subPhase ==
           gameState.players.find(
@@ -438,21 +439,20 @@ function Game({ socket }: GameProps) {
     if (currentPlayer) {
       currentPlayer.initialRole.abilities.some((ability) => {
         if (ability.opType) {
-          const idx = ability.opType.indexOf(typeName);
-          if (idx != -1 && tempTargets.length == idx) {
-            tempTargets.push({
-              type: typeName,
-              name: index === -1 ? playerName : index,
-            });
-            if (tempTargets.length == ability.opType.length) {
-              const data = {
-                target1: tempTargets[0],
-                target2: tempTargets.length > 1 ? tempTargets[1] : null,
-              };
-              nightAction(ability.name, data);
-              setTempTargets([]);
-              return true;
-            }
+          const opType = ability.opType[tempTargets.length];
+          if (opType != typeName) return false;
+          tempTargets.push({
+            type: typeName,
+            name: index === -1 ? playerName : index,
+          });
+          if (tempTargets.length == ability.opType.length) {
+            const data = {
+              target1: tempTargets[0],
+              target2: tempTargets.length > 1 ? tempTargets[1] : null,
+            };
+            nightAction(ability.name, data);
+            setTempTargets([]);
+            return true;
           }
         }
       });
