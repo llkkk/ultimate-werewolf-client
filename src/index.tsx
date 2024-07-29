@@ -5,9 +5,10 @@ import { io, Socket } from 'socket.io-client';
 import App from './App.tsx';
 import './index.css';
 import './App.css';
+import { SERVER_HOST } from './config';
 
 // 连接到 Socket.IO 服务器 http://117.72.8.112:3000/  'http://192.168.50.44:3000'
-const socket: Socket = io('http://117.72.8.112:3000', {
+const socket: Socket = io(SERVER_HOST, {
   reconnectionAttempts: 5, // 重新连接尝试次数
   reconnectionDelay: 2000, // 重新连接延迟
   transports: ['websocket'],
