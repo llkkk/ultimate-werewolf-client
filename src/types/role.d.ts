@@ -5,4 +5,5 @@ export interface Role {
   description: string;
   img: string;
   abilities: Ability[];
+  phase: string;
 }

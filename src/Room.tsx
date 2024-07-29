@@ -54,35 +54,9 @@ function Game({ socket }: GameProps) {
   const avatar_resources_base_url =
     'https://cdn.jsdelivr.net/gh/uchihasasuka/ultimate-werewolf-resource@master/images/avatars/';
 
-  const nightSubPhases = [
-    '爪牙',
-    '狼人',
-    '冲锋狼',
-    '狼先知',
-    '阿尔法狼',
-    '守夜人',
-    '诅咒者',
-    '预言家',
-    '见习预言家',
-    '哨兵',
-    '强盗',
-    '女巫',
-    '捣蛋鬼',
-    '小精灵',
-    '酒鬼',
-    '盗贼',
-    '失眠者',
-  ];
-  let [existingRoles, setExistingRoles] = useState<string[]>([]);
+  const [existingRoles, setExistingRoles] = useState<string[]>([]);
 
   useEffect(() => {
-    const filteredRoles = roles.filter((role) => role.count > 0);
-    const updatedExistingRoles = nightSubPhases.filter((phase) =>
-      filteredRoles.some((role) => role.name === phase),
-    );
-
-    setExistingRoles(updatedExistingRoles);
-
     if (avatars.length === 0) {
       // 初始化头像图片
       const fetchAvatars = async () => {
@@ -233,6 +207,7 @@ function Game({ socket }: GameProps) {
 
     socket.on('gameStarted', (gameState) => {
       setGameState(gameState);
+      setExistingRoles(gameState.nightSubPhases);
       setLogs(gameState.logs);
       if (gameState.majorPhase == '夜晚') {
         setInitialCount(gameState.curActionTime);
@@ -425,7 +400,7 @@ function Game({ socket }: GameProps) {
     return (
       currentPlayer &&
       currentPlayer.initialRole &&
-      currentPlayer.initialRole.name === gameState?.subPhase &&
+      currentPlayer.initialRole.phase === gameState?.subPhase &&
       currentPlayer.initialRole.abilities.some((a) => a.max > 0 && a.opType)
     );
   };
