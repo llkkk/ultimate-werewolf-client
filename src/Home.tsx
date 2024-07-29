@@ -7,6 +7,7 @@ import { Room } from './types/room';
 import { Role } from './types/role';
 import { Player } from './types/player';
 import { useTip } from './globalTip';
+import { Avatar } from './types/avatar';
 
 interface HomeProps {
   socket: Socket;
@@ -27,6 +28,22 @@ const Home: React.FC<HomeProps> = ({ socket }) => {
     recentRooms = [];
   }
 
+  const getLocalAvatar = () => {
+    //获取缓存的用户头像
+    const storedAvatar = localStorage.getItem('userAvatar');
+    let parsedAvatar: Avatar | undefined = undefined;
+
+    if (storedAvatar) {
+      try {
+        parsedAvatar = JSON.parse(storedAvatar);
+        console.log(parsedAvatar);
+      } catch (error) {
+        console.error('Failed to parse userAvatar from localStorage', error);
+      }
+    }
+    return parsedAvatar;
+  }
+
   const createRoom = () => {
     if (username.trim() === '') {
       showTip('请输入用户名');
@@ -36,7 +53,7 @@ const Home: React.FC<HomeProps> = ({ socket }) => {
     const newRoomID = uuidv4().slice(0, 8); // 生成唯一的房间ID 截取前10个字符
     socket.emit(
       'createRoom',
-      { id: newRoomID, username },
+      { id: newRoomID, username, avatar: getLocalAvatar() },
       (response: {
         status: string;
         message?: string;
@@ -97,7 +114,7 @@ const Home: React.FC<HomeProps> = ({ socket }) => {
     localStorage.setItem('username', username);
     socket.emit(
       'joinRoom',
-      { room: joinRoomID, username },
+      { room: joinRoomID, username, avatar: getLocalAvatar() },
       (response: {
         status: string;
         message?: string;

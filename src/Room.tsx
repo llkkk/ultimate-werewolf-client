@@ -10,6 +10,7 @@ import { Response } from './types/response';
 import { GameState } from './types/gameState';
 import { useTip } from './globalTip';
 import { Avatar } from './types/avatar';
+import PlayerAvatar from './components/PlayerAvatar'
 import Countdown from './Countdown';
 
 interface GameProps {
@@ -25,8 +26,6 @@ function Game({ socket }: GameProps) {
   const [username, setUsername] = useState(
     localStorage.getItem('username') || '',
   );
-  const [userAvatar, setUserAvatar] = useState<Avatar | null>(null);
-
   const [players, setPlayers] = useState<Player[]>([]);
   const [roles, setRoles] = useState<Role[]>(
     JSON.parse(localStorage.getItem('roles') || '[]'),
@@ -34,11 +33,7 @@ function Game({ socket }: GameProps) {
   const [gameState, setGameState] = useState<GameState | null>(null);
 
   // 用户头像相关
-  const [avatars, setAvatars] = useState<Avatar[]>(
-    localStorage.getItem('avatars')
-      ? JSON.parse(localStorage.getItem('avatars')!)
-      : [],
-  );
+  const [avatars, setAvatars] = useState<Avatar[]>([]);
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
@@ -48,11 +43,11 @@ function Game({ socket }: GameProps) {
 
   // 获取头像图片列表地址
   const avatar_resources_list_url =
-    'https://api.github.com/repos/UchihaSasuka/ultimate-werewolf-resource/contents/images/avatars';
+    'https://game.gtimg.cn/images/lol/act/img/js/heroList/hero_list.js';
 
   // 头像图片基础地址
   const avatar_resources_base_url =
-    'https://cdn.jsdelivr.net/gh/uchihasasuka/ultimate-werewolf-resource@master/images/avatars/';
+    'https://game.gtimg.cn/images/lol/act/img/champion/';
 
   const [existingRoles, setExistingRoles] = useState<string[]>([]);
 
@@ -62,28 +57,17 @@ function Game({ socket }: GameProps) {
       const fetchAvatars = async () => {
         const response = await fetch(avatar_resources_list_url);
         const data = await response.json();
-        const avatarsData = data.map((avatar: Avatar, index: number) => ({
-          name: avatar.name,
-          sha: index,
-          img: avatar_resources_base_url + avatar.name,
-        }));
-        setAvatars(avatarsData);
-        localStorage.setItem('avatars', JSON.stringify(avatarsData));
+        if (data) {
+          const heroList = data.hero
+          const avatarsData = heroList.map((hero: any, index: number) => ({
+            name: hero.alias,
+            sha: index,
+            img: avatar_resources_base_url + hero.alias + '.png',
+          }));
+          setAvatars(avatarsData);
+        }
       };
       fetchAvatars();
-    }
-
-    //获取缓存的用户头像
-    const storedAvatar = localStorage.getItem('userAvatar');
-
-    if (storedAvatar) {
-      try {
-        const parsedAvatar: Avatar = JSON.parse(storedAvatar);
-        setUserAvatar(parsedAvatar);
-        console.log(parsedAvatar);
-      } catch (error) {
-        console.error('Failed to parse userAvatar from localStorage', error);
-      }
     }
   }, [roles]);
 
@@ -139,20 +123,25 @@ function Game({ socket }: GameProps) {
   // 更换用户头像
   const pickAvatar = (avatar: Avatar) => {
     if (selectedPlayer) {
-      const currentPlayer = gameState?.players.find((p) => p.id === socket.id);
-      if (currentPlayer) {
-        currentPlayer.avatar = avatar;
-      }
       selectedPlayer.avatar = avatar;
       setShowAvatarSelector(false);
       setSelectedPlayer(null);
-      // localStorage.setItem('userAvatar', JSON.stringify(avatar));
+      localStorage.setItem('userAvatar', JSON.stringify(avatar));
+      updateAvatar(avatar)
+    }
+  };
+
+  // 向服务器更新用户头像
+  const updateAvatar = (avatar: Avatar) => {
+    const currentPlayer = gameState?.players.find((p) => p.id === socket.id);
+    if (currentPlayer) {
+      currentPlayer.avatar = avatar;
       socket.emit('updatePlayer', {
         room: roomID,
         player: currentPlayer,
       });
     }
-  };
+  }
 
   useEffect(() => {
     if (!username) {
@@ -160,17 +149,28 @@ function Game({ socket }: GameProps) {
       localStorage.setItem('username', newUserName);
       setUsername(newUserName);
     }
+    //获取缓存的用户头像
+    const storedAvatar = localStorage.getItem('userAvatar');
+    let parsedAvatar: Avatar | undefined = undefined
+
+    if (storedAvatar) {
+      try {
+        parsedAvatar = JSON.parse(storedAvatar);
+        console.log(parsedAvatar);
+      } catch (error) {
+        console.error('Failed to parse userAvatar from localStorage', error);
+      }
+    }
     if (roomID) {
       localStorage.setItem('roomID', roomID);
       socket.emit(
         'joinRoom',
-        { room: roomID, username },
+        { room: roomID, username, avatar: parsedAvatar },
         (response: Response) => {
           if (response.status === 'ok') {
             localStorage.setItem('roles', JSON.stringify(response.roles)); // 保存角色配置
             localStorage.setItem('players', JSON.stringify(response.players)); // 保存玩家信息
             localStorage.setItem('host', response.host); // 保存房主信息
-            //TODO头像本地有保存，直接取本地更新远端
             saveRoomToLocalStorage(roomID);
             setPlayers(response.players || []);
             setRoles(response.roles || roles);
@@ -332,6 +332,14 @@ function Game({ socket }: GameProps) {
         // 投票阶段投票
         vote(player.id);
       }
+    } else {
+      console.log('game state is undefined')
+      // 刚开局的情况，直接走换头像的逻辑
+      if (socket.id == players[index].id) {
+        const player = players[index];
+        setSelectedPlayer(player);
+        setShowAvatarSelector(true);
+      }
     }
   };
 
@@ -466,7 +474,7 @@ function Game({ socket }: GameProps) {
         .filter((role) => role.count > 0)
         .map((role, index) => (
           <div key={index} className={styles.gameRoleItem}>
-            <img src={role.img} />
+            <img src={role_resources_base_url + role.img} />
             <div
               className={styles.gameInfoIcon}
               onClick={(e) => handleInfoClick(e, role.description)}
@@ -508,7 +516,7 @@ function Game({ socket }: GameProps) {
         <>
           <h6>本局游戏配置</h6>
           <div className={styles.gameRole}>{renderGameConfig()}</div>
-          <h6>行动顺序</h6>
+          <h6>夜晚行动顺序</h6>
           <div className={styles.moveRange}>
             {existingRoles.map((phase, index) => (
               <>
@@ -570,18 +578,11 @@ function Game({ socket }: GameProps) {
                   : () => handleAvatarClick(player, index)
               }
             >
-              {
-                <img
-                  className={styles.ownCardImg}
-                  src={
-                    gameState && gameState.subPhase === '结算环节'
-                      ? role_resources_base_url + player.role.img
-                      : player.avatar && player.avatar.img
-                      ? player.avatar.img
-                      : userAvatar?.img
-                  }
-                />
-              }
+              <PlayerAvatar
+                gameState={gameState}
+                player={player}
+                role_resources_base_url={role_resources_base_url}
+              ></PlayerAvatar>
               {host === player.id && (
                 <span
                   className={styles.roomHolder}

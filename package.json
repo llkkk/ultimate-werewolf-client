@@ -11,6 +11,7 @@
     "deploy": "pnpm run build && rm -rf /var/www/html/ultimate-werewolf-client/* && cp -r dist/* /var/www/html/ultimate-werewolf-client && chmod -R 755 /var/www/html/ultimate-werewolf-client"
   },
   "dependencies": {
+    "antd": "^5.19.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.2.1",
